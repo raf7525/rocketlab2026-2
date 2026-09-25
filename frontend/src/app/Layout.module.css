@@ -1,0 +1,48 @@
+.header {
+  position: relative;
+  z-index: 20;
+  background: linear-gradient(to bottom, #0d1013, rgb(20 24 28 / 0%));
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: min(100% - 2 * var(--gutter), var(--container));
+  height: var(--header-height);
+  margin: 0 auto;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+}
+
+.logo {
+  font-family: var(--font-symbols);
+  font-size: 22px;
+  line-height: 1;
+  color: var(--star);
+}
+
+.brandSuffix {
+  font-weight: 400;
+  color: var(--text);
+}
+
+.mockBadge {
+  padding: 3px 10px 2px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  cursor: help;
+}
