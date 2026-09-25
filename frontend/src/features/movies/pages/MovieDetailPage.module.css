@@ -1,0 +1,126 @@
+.page {
+  position: relative;
+}
+
+/* Imagem de fundo que passa por baixo do cabeçalho e se dissolve na página, como no Letterboxd. */
+.backdrop {
+  position: absolute;
+  inset: calc(-1 * var(--header-height)) 0 auto;
+  height: calc(460px + var(--header-height));
+  background: center 25% / cover no-repeat;
+  opacity: 0.5;
+  mask-image: linear-gradient(to bottom, #000 35%, transparent);
+}
+
+.content {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+  width: min(100% - 2 * var(--gutter), 1000px);
+  margin: 0 auto;
+  padding: 150px 0 72px;
+}
+
+.side {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  align-items: end;
+  gap: 20px;
+}
+
+@media (min-width: 720px) {
+  .content {
+    grid-template-columns: 230px minmax(0, 1fr);
+    gap: 48px;
+    padding-top: 240px;
+  }
+
+  .side {
+    display: block;
+    align-self: start;
+  }
+}
+
+.poster {
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--surface);
+  box-shadow:
+    0 10px 30px rgb(0 0 0 / 55%),
+    inset 0 0 0 1px rgb(221 238 255 / 12%);
+}
+
+.poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rating {
+  margin-top: 16px;
+}
+
+.main {
+  display: grid;
+  align-content: start;
+  gap: 36px;
+  min-width: 0;
+}
+
+.header {
+  display: grid;
+  gap: 12px;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: clamp(30px, 5vw, 42px);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text-strong);
+  text-shadow: 0 2px 12px rgb(0 0 0 / 50%);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: 15px;
+}
+
+.year {
+  color: var(--text-soft);
+}
+
+.status {
+  color: var(--chip);
+}
+
+.synopsis {
+  max-width: 65ch;
+  margin-top: -12px;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.loading {
+  margin: 96px auto;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.retry {
+  padding: 8px 14px 6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  cursor: pointer;
+}
