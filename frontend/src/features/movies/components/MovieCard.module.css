@@ -1,0 +1,158 @@
+.card {
+  position: relative;
+}
+
+.link {
+  display: block;
+}
+
+.link:focus-visible {
+  outline: none;
+}
+
+.poster {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--surface);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 35%);
+}
+
+.poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Moldura fina do pôster, que fica verde no hover (como no Letterboxd). */
+.poster::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgb(221 238 255 / 12%);
+  transition: box-shadow 120ms ease-out;
+}
+
+.link:hover .poster::after {
+  box-shadow: inset 0 0 0 2px var(--star);
+}
+
+.link:focus-visible .poster {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.noPoster {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 12px;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.rating {
+  margin-top: 8px;
+}
+
+.title {
+  display: -webkit-box;
+  margin-top: 3px;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  transition: color 120ms ease-out;
+}
+
+.link:hover .title,
+.link:focus-visible .title {
+  color: var(--accent);
+}
+
+/* Popover no estilo do AniList, ao lado do card, com uma setinha apontando para ele. */
+.popover {
+  position: absolute;
+  top: 14px;
+  z-index: 10;
+  width: 280px;
+  padding: 18px 20px 20px;
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-popover);
+  pointer-events: none;
+  animation: popover-in 140ms ease-out;
+}
+
+.popover[hidden] {
+  display: none;
+}
+
+.popover::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  border: 8px solid transparent;
+}
+
+.right {
+  left: calc(100% + 16px);
+}
+
+.right::before {
+  right: 100%;
+  border-right-color: var(--bg-raised);
+}
+
+.left {
+  right: calc(100% + 16px);
+}
+
+.left::before {
+  left: 100%;
+  border-left-color: var(--bg-raised);
+}
+
+.year {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.details {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.genres {
+  margin-top: 14px;
+}
+
+@keyframes popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+/* Em telas de toque ou estreitas não há hover nem espaço ao lado: os detalhes ficam na página. */
+@media (hover: none), (max-width: 719px) {
+  .popover {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popover {
+    animation: none;
+  }
+}

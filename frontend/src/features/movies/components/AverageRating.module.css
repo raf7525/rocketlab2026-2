@@ -1,0 +1,39 @@
+.rating {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+}
+
+.average {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-soft);
+}
+
+.count {
+  flex-basis: 100%;
+  color: var(--text-muted);
+}
+
+.unrated {
+  color: var(--text-muted);
+}
+
+.sm {
+  min-height: 18px;
+  font-size: 13px;
+}
+
+.sm.unrated {
+  font-size: 12px;
+}
+
+.lg {
+  font-size: 22px;
+}
+
+.lg .count,
+.lg.unrated {
+  font-size: 14px;
+}
