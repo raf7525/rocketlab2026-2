@@ -1,0 +1,95 @@
+.review {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.withPoster {
+  grid-template-columns: 70px minmax(0, 1fr);
+  gap: 20px;
+}
+
+.poster {
+  position: relative;
+  display: block;
+  align-self: start;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--surface);
+}
+
+.poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.poster::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgb(221 238 255 / 20%);
+  transition: box-shadow 120ms ease-out;
+}
+
+.poster:hover::after {
+  box-shadow: inset 0 0 0 2px var(--star);
+}
+
+.movie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 8px;
+  margin-bottom: 6px;
+  font-weight: 400;
+}
+
+.movieTitle {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-strong);
+  transition: color 120ms ease-out;
+}
+
+.movieTitle:hover {
+  color: var(--accent);
+}
+
+.year {
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.byline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+}
+
+.author {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.text {
+  margin-top: 12px;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.footer {
+  margin-top: 12px;
+}

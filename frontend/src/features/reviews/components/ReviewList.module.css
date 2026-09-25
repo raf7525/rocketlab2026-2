@@ -1,0 +1,17 @@
+.list {
+  padding: 0;
+  list-style: none;
+}
+
+.list > li:first-child > article {
+  padding-top: 0;
+}
+
+.list > li:last-child > article {
+  border-bottom: 0;
+}
+
+.message {
+  font-size: 14px;
+  color: var(--text-muted);
+}

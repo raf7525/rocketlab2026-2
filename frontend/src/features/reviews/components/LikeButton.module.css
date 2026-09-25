@@ -1,0 +1,39 @@
+.like {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: -6px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 120ms ease-out;
+}
+
+.like:hover {
+  color: var(--text-soft);
+}
+
+.like[aria-busy='true'] {
+  cursor: progress;
+}
+
+.heart {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+  transition:
+    transform 150ms ease-out,
+    color 120ms ease-out;
+}
+
+.like:active .heart {
+  transform: scale(0.8);
+}
+
+.liked .heart {
+  color: var(--like);
+}
