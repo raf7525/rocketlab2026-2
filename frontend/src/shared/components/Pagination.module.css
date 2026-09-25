@@ -1,0 +1,39 @@
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 36px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.step,
+.stepDisabled {
+  padding: 7px 14px 5px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.step {
+  color: var(--text-soft);
+  transition: background-color 120ms ease-out;
+}
+
+.step:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+
+.stepDisabled {
+  opacity: 0.35;
+}
+
+.current {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}

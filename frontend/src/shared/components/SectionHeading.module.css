@@ -1,0 +1,25 @@
+.heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.title,
+.aside {
+  font-size: 13px;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.title {
+  font-weight: 400;
+  color: var(--text);
+}
+
+.aside {
+  color: var(--text-muted);
+}
