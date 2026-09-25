@@ -4,7 +4,7 @@ O domínio foi organizado como esquema estrela para suportar consultas
 analíticas, mantendo relações de navegação úteis para a futura API.
 """
 
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from hashlib import sha256
 from typing import Literal
@@ -32,6 +32,12 @@ def generate_surrogate_key() -> str:
     """Gera uma chave substituta textual no formato SHA-256."""
 
     return sha256(uuid4().bytes).hexdigest()
+
+
+def utc_now() -> datetime:
+    """Momento atual em UTC sem fuso, como o CURRENT_TIMESTAMP do SQLite, com microssegundos."""
+
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 bridge_movie_genre = Table(
@@ -224,7 +230,9 @@ class MovieReview(Base):
     nome: Mapped[str] = mapped_column(String(120))
     nota: Mapped[float] = mapped_column(Double)
     comentario: Mapped[str] = mapped_column(String(4000))
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    # O default em Python tem microssegundos e mantém a ordem de avaliações criadas no mesmo
+    # segundo; o server_default continua cobrindo inserções feitas direto por SQL.
+    created_at: Mapped[datetime] = mapped_column(default=utc_now, server_default=func.now())
 
     movie: Mapped[DimMovie] = relationship(back_populates="reviews")
 
