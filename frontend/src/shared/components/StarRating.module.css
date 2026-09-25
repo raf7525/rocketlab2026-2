@@ -1,0 +1,21 @@
+.stars {
+  display: inline-block;
+  font-family: var(--font-symbols);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--star);
+  white-space: nowrap;
+}
+
+.sm {
+  font-size: 13px;
+}
+
+.md {
+  font-size: 16px;
+}
+
+.lg {
+  font-size: 24px;
+}
