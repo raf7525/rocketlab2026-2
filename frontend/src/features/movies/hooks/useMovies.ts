@@ -97,12 +97,14 @@ export function useDeleteMovie(movieId: string) {
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: movieKeys.lists() }),
-        queryClient.invalidateQueries({ queryKey: ['reviews'] }),
-        // Sem buscar de novo agora: a página ainda aberta mostraria "Filme não encontrado".
-        queryClient.invalidateQueries({
-          queryKey: movieKeys.detail(movieId),
-          refetchType: 'none',
-        }),
+        // `reviewKeys.popular()` e `watchlistKeys.all`: importar criaria um ciclo entre os módulos.
+        queryClient.invalidateQueries({ queryKey: ['reviews', 'popular'] }),
+        queryClient.invalidateQueries({ queryKey: ['watchlist'] }),
+        // O filme e as avaliações dele não existem mais: buscar de novo daria 404 (e o React
+        // Query tentaria outra vez, segurando a volta ao catálogo por vários segundos).
+        ...[movieKeys.detail(movieId), ['reviews', 'movie', movieId]].map((queryKey) =>
+          queryClient.invalidateQueries({ queryKey, refetchType: 'none' }),
+        ),
       ]),
   })
 }

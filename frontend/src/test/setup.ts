@@ -22,6 +22,7 @@ beforeEach(() => seedDb())
 afterEach(() => {
   cleanup()
   server.resetHandlers()
+  server.events.removeAllListeners()
   localStorage.clear()
 })
 

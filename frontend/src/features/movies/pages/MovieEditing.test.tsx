@@ -250,6 +250,25 @@ describe('Edição do filme', () => {
     expect(db.reviews).toHaveLength(0)
   })
 
+  it('depois de remover, não busca de novo os dados do filme apagado', async () => {
+    seedDb({ genres: GENRES, movies: [movie], reviews: [makeReviewRow({ sk_movie_id: 'blue-beetle' })] })
+    const { user } = renderApp('/filmes/blue-beetle')
+    await openEditing(user)
+    const requests: string[] = []
+    server.events.on('request:start', ({ request }) => {
+      requests.push(`${request.method} ${new URL(request.url).pathname}`)
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Remover filme' }))
+    await user.click(screen.getByRole('button', { name: 'Sim, remover' }))
+    await screen.findByRole('region', { name: 'Catálogo' })
+
+    // Buscar o filme ou as avaliações dele daria 404 (e o app tentaria de novo, atrasando a volta).
+    expect(requests.filter((request) => request.includes('/movies/blue-beetle'))).toEqual([
+      'DELETE /api/v1/movies/blue-beetle',
+    ])
+  })
+
   it('desistir de remover mantém o filme', async () => {
     seedDb({ genres: GENRES, movies: [movie] })
     const { user } = renderApp('/filmes/blue-beetle')
