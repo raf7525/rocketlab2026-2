@@ -18,6 +18,11 @@ const FIELDS = ['titulo', 'ano_lancamento', 'diretores', 'generos', 'assistido']
 type Field = (typeof FIELDS)[number]
 type Errors = Partial<Record<Field, string>>
 
+const SUBMIT_LABELS = {
+  create: { idle: 'Cadastrar filme', pending: 'Cadastrando…' },
+  edit: { idle: 'Salvar alterações', pending: 'Salvando…' },
+}
+
 /** O que a pessoa respondeu além dos dados do filme (não vai para a API). */
 export type MovieFormExtras = {
   /** Se já assistiu ao filme, ela segue para a avaliação depois do cadastro. */
@@ -25,26 +30,42 @@ export type MovieFormExtras = {
 }
 
 type Props = {
-  /** Id do título da página, que dá nome ao formulário. */
+  /** Id do título da página ou da seção, que dá nome ao formulário. */
   labelledBy: string
-  onSubmit: (data: MovieCreate, extras: MovieFormExtras) => void
   /** Enquanto o envio anterior não termina, o botão não envia de novo. */
   pending: boolean
   /** Erro devolvido pela API no último envio. */
   error: Error | null
-}
+} & (
+  | {
+      /** Cadastro: formulário vazio, com a pergunta se a pessoa já assistiu ao filme. */
+      mode: 'create'
+      onSubmit: (data: MovieCreate, extras: MovieFormExtras) => void
+    }
+  | {
+      /** Edição: começa com os dados atuais do filme; "Cancelar" chama `onCancel`. */
+      mode: 'edit'
+      /** Filmes do CSV podem não ter ano; o campo começa vazio e precisa ser preenchido. */
+      initial: Omit<MovieCreate, 'ano_lancamento'> & { ano_lancamento: number | null }
+      onSubmit: (data: MovieCreate) => void
+      onCancel: () => void
+    }
+)
 
 /**
- * Título, ano, direção, gêneros (da lista do catálogo) e sinopse de um filme, mais a pergunta
- * se a pessoa já assistiu a ele.
+ * Título, ano, direção, gêneros (da lista do catálogo) e sinopse de um filme. No cadastro,
+ * também pergunta se a pessoa já assistiu a ele.
  */
-export function MovieForm({ labelledBy, onSubmit, pending, error }: Props) {
+export function MovieForm(props: Props) {
+  const { labelledBy, pending, error } = props
+  const initial = props.mode === 'edit' ? props.initial : null
+  const askWatched = props.mode === 'create'
   const id = useId()
-  const [titulo, setTitulo] = useState('')
-  const [ano, setAno] = useState('')
-  const [diretores, setDiretores] = useState('')
-  const [generos, setGeneros] = useState<string[]>([])
-  const [sinopse, setSinopse] = useState('')
+  const [titulo, setTitulo] = useState(initial?.titulo ?? '')
+  const [ano, setAno] = useState(initial?.ano_lancamento?.toString() ?? '')
+  const [diretores, setDiretores] = useState(initial?.diretores.join(', ') ?? '')
+  const [generos, setGeneros] = useState<string[]>(initial?.generos ?? [])
+  const [sinopse, setSinopse] = useState(initial?.sinopse ?? '')
   const [assistido, setAssistido] = useState<boolean | null>(null)
   const [errors, setErrors] = useState<Errors>({})
   const formRef = useRef<HTMLFormElement>(null)
@@ -64,7 +85,7 @@ export function MovieForm({ labelledBy, onSubmit, pending, error }: Props) {
     event.preventDefault()
     if (pending) return
 
-    const result = parseMovie({ titulo, ano, diretores, generos, sinopse, assistido })
+    const result = parseMovie({ titulo, ano, diretores, generos, sinopse }, askWatched, assistido)
     if (!result.ok) {
       setErrors(result.errors)
       const firstInvalid = FIELDS.find((field) => result.errors[field])
@@ -76,7 +97,8 @@ export function MovieForm({ labelledBy, onSubmit, pending, error }: Props) {
     }
 
     setErrors({})
-    onSubmit(result.data, result.extras)
+    if (props.mode === 'create') props.onSubmit(result.data, { assistido: assistido === true })
+    else props.onSubmit(result.data)
   }
 
   const errorId = (field: Field) => `${id}-${field}-erro`
@@ -184,39 +206,47 @@ export function MovieForm({ labelledBy, onSubmit, pending, error }: Props) {
         </span>
       </div>
 
-      <fieldset
-        data-field="assistido"
-        aria-describedby={describedBy('assistido')}
-        className={styles.fieldset}
-      >
-        <legend className={styles.label}>Você já assistiu a este filme?</legend>
-        <div className={styles.options}>
-          {WATCHED_OPTIONS.map((option) => (
-            <label key={option.label} className={styles.option}>
-              <input
-                type="radio"
-                name={`${id}-assistido`}
-                checked={assistido === option.value}
-                onChange={() => {
-                  setAssistido(option.value)
-                  clearError('assistido')
-                }}
-                className="visually-hidden"
-              />
-              {option.label}
-            </label>
-          ))}
-        </div>
-        <FieldError id={errorId('assistido')} message={errors.assistido} />
-      </fieldset>
+      {askWatched && (
+        <fieldset
+          data-field="assistido"
+          aria-describedby={describedBy('assistido')}
+          className={styles.fieldset}
+        >
+          <legend className={styles.label}>Você já assistiu a este filme?</legend>
+          <div className={styles.options}>
+            {WATCHED_OPTIONS.map((option) => (
+              <label key={option.label} className={styles.option}>
+                <input
+                  type="radio"
+                  name={`${id}-assistido`}
+                  checked={assistido === option.value}
+                  onChange={() => {
+                    setAssistido(option.value)
+                    clearError('assistido')
+                  }}
+                  className="visually-hidden"
+                />
+                {option.label}
+              </label>
+            ))}
+          </div>
+          <FieldError id={errorId('assistido')} message={errors.assistido} />
+        </fieldset>
+      )}
 
       <div className={styles.actions}>
         <button type="submit" aria-disabled={pending} className={styles.submit}>
-          {pending ? 'Cadastrando…' : 'Cadastrar filme'}
+          {pending ? SUBMIT_LABELS[props.mode].pending : SUBMIT_LABELS[props.mode].idle}
         </button>
-        <Link to="/" className={styles.cancel}>
-          Cancelar
-        </Link>
+        {props.mode === 'create' ? (
+          <Link to="/" className={styles.cancel}>
+            Cancelar
+          </Link>
+        ) : (
+          <button type="button" onClick={props.onCancel} className={styles.cancelButton}>
+            Cancelar
+          </button>
+        )}
       </div>
 
       {error && (
@@ -292,14 +322,11 @@ type Values = {
   diretores: string
   generos: string[]
   sinopse: string
-  assistido: boolean | null
 }
-type Parsed =
-  | { ok: true; data: MovieCreate; extras: MovieFormExtras }
-  | { ok: false; errors: Errors }
+type Parsed = { ok: true; data: MovieCreate } | { ok: false; errors: Errors }
 
 /** As mesmas regras do backend: textos aparados, ano no intervalo, direção e gênero obrigatórios. */
-function parseMovie(values: Values): Parsed {
+function parseMovie(values: Values, askWatched: boolean, assistido: boolean | null): Parsed {
   const titulo = values.titulo.trim()
   const ano = values.ano.trim()
   const year = Number(ano)
@@ -319,9 +346,9 @@ function parseMovie(values: Values): Parsed {
     errors.diretores = `Cada nome pode ter até ${MAX_NAME} caracteres.`
   }
   if (values.generos.length === 0) errors.generos = 'Escolha pelo menos um gênero.'
-  if (values.assistido === null) errors.assistido = 'Diga se você já assistiu ao filme.'
+  if (askWatched && assistido === null) errors.assistido = 'Diga se você já assistiu ao filme.'
 
-  if (values.assistido === null || Object.keys(errors).length > 0) return { ok: false, errors }
+  if (Object.keys(errors).length > 0) return { ok: false, errors }
   return {
     ok: true,
     data: {
@@ -331,6 +358,5 @@ function parseMovie(values: Values): Parsed {
       generos: values.generos,
       sinopse: values.sinopse.trim() || null,
     },
-    extras: { assistido: values.assistido },
   }
 }

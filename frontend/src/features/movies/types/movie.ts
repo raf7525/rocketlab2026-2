@@ -23,9 +23,25 @@ export type MovieDetail = MovieSummary & {
   url_backdrop: string | null
   /** Nomes em ordem alfabética; vazio quando o CSV não traz o diretor. */
   diretores: string[]
+  /** Atores e atrizes em ordem alfabética (o CSV não traz a ordem dos créditos). */
+  elenco: string[]
 }
 
-/** Dados para cadastrar um filme (`MovieCreate`): `POST /movies` devolve o `MovieDetail`. */
+/**
+ * Busca e filtros do catálogo (`GET /movies?busca=&genero=&diretor=&ator=`), combinados entre si.
+ * Título, direção e elenco aceitam parte do nome; o gênero precisa ser o nome inteiro.
+ */
+export type MovieFilters = {
+  busca?: string
+  genero?: string
+  diretor?: string
+  ator?: string
+}
+
+/**
+ * Dados para cadastrar um filme (`MovieCreate`): `POST /movies` devolve o `MovieDetail`.
+ * A edição (`PUT /movies/{id}`) usa os mesmos campos e substitui todos eles.
+ */
 export type MovieCreate = {
   titulo: string
   ano_lancamento: number

@@ -23,6 +23,7 @@ export function NewMoviePage() {
         Adicionar filme
       </h1>
       <MovieForm
+        mode="create"
         labelledBy={headingId}
         pending={createMovie.isPending}
         error={createMovie.error}
@@ -30,7 +31,7 @@ export function NewMoviePage() {
           createMovie.mutate(data, {
             onSuccess: (movie) => {
               if (!assistido) return backToCatalog()
-              // O replace tira o formulário do histórico, e o state leva adiante o caminho de volta.
+              // O replace tira o formulário do histórico; o state leva adiante o caminho de volta.
               navigate(`/filmes/${movie.sk_movie_id}/avaliar`, {
                 replace: true,
                 state: location.state,

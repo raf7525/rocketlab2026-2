@@ -4,8 +4,8 @@
  */
 
 /**
- * Linha de `dim_movies` já com os nomes dos gêneros (via `bridge_movie_genre`) e dos diretores
- * (via `bridge_movie_person` e `dim_people`).
+ * Linha de `dim_movies` já com os nomes dos gêneros (via `bridge_movie_genre`), dos diretores e
+ * do elenco (via `bridge_movie_person` e `dim_people`).
  */
 export type MovieRow = {
   sk_movie_id: string
@@ -19,6 +19,7 @@ export type MovieRow = {
   url_backdrop: string | null
   generos: string[]
   diretores: string[]
+  elenco: string[]
 }
 
 /** Linha de `movie_reviews`. */

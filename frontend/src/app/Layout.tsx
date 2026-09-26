@@ -7,7 +7,8 @@ import styles from './Layout.module.css'
 const USING_MOCKS = import.meta.env.VITE_API_MOCKS === 'true'
 
 export function Layout() {
-  // Quem cadastra a partir do catálogo volta para a mesma página dele no fim do cadastro.
+  // Só existe no catálogo, o único lugar com o botão de adicionar filme. Quem cadastra a partir
+  // dele volta para a mesma página no fim do cadastro.
   const catalogReturn = useCatalogReturnState()
 
   return (
@@ -29,10 +30,12 @@ export function Layout() {
                 dados de exemplo
               </span>
             )}
-            <Link to="/filmes/novo" state={catalogReturn} className={styles.addMovie}>
-              <span aria-hidden="true">+</span>
-              <span className={styles.addMovieText}>Adicionar filme</span>
-            </Link>
+            {catalogReturn && (
+              <Link to="/filmes/novo" state={catalogReturn} className={styles.addMovie}>
+                <span aria-hidden="true">+</span>
+                <span className={styles.addMovieText}>Adicionar filme</span>
+              </Link>
+            )}
           </div>
         </div>
       </header>

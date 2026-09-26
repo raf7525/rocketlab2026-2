@@ -50,9 +50,10 @@ describe('MovieDetailPage', () => {
     seedDb({ movies: [{ ...movie, diretores: ['Lana Wachowski', 'Lilly Wachowski'] }] })
     renderApp('/filmes/blue-beetle')
 
-    const names = await screen.findByText('Lana Wachowski e Lilly Wachowski')
+    const lana = await screen.findByRole('link', { name: 'Lana Wachowski' })
 
-    expect(names.parentElement).toHaveTextContent(/^Dirigido por Lana Wachowski e Lilly Wachowski$/)
+    expect(screen.getByRole('link', { name: 'Lilly Wachowski' })).toBeInTheDocument()
+    expect(lana.closest('p')).toHaveTextContent(/^Dirigido por Lana Wachowski e Lilly Wachowski$/)
   })
 
   it('não mostra a direção quando o filme não tem diretor', async () => {
@@ -71,6 +72,62 @@ describe('MovieDetailPage', () => {
     const year = await screen.findByText('2023')
 
     expect(year.parentElement).toHaveTextContent(/^2023$/)
+  })
+
+  it('mostra o elenco do filme', async () => {
+    seedDb({ movies: [{ ...movie, elenco: ['Bruna Marquezine', 'Xolo Maridueña'] }] })
+    renderApp('/filmes/blue-beetle')
+
+    const cast = await screen.findByRole('region', { name: 'Elenco' })
+    expect(within(cast).getAllByRole('listitem').map((item) => item.textContent)).toEqual([
+      'Bruna Marquezine',
+      'Xolo Maridueña',
+    ])
+  })
+
+  it('não mostra o elenco quando o filme não tem atores', async () => {
+    seedDb({ movies: [{ ...movie, elenco: [] }] })
+    renderApp('/filmes/blue-beetle')
+
+    await screen.findByRole('heading', { level: 1, name: 'Blue Beetle' })
+    expect(screen.queryByRole('region', { name: 'Elenco' })).not.toBeInTheDocument()
+  })
+
+  it('o nome de alguém do elenco abre o catálogo com os filmes dessa pessoa', async () => {
+    seedDb({
+      movies: [
+        { ...movie, elenco: ['Xolo Maridueña'] },
+        makeMovieRow({ titulo: 'Cobra Kai: O Filme', elenco: ['Xolo Maridueña'] }),
+        makeMovieRow({ titulo: 'Gran Turismo', elenco: ['David Harbour'] }),
+      ],
+    })
+    const { user, router } = renderApp('/filmes/blue-beetle')
+
+    const cast = await screen.findByRole('region', { name: 'Elenco' })
+    await user.click(within(cast).getByRole('link', { name: 'Xolo Maridueña' }))
+
+    const catalog = await screen.findByRole('region', { name: 'Catálogo' })
+    expect(await within(catalog).findByText('2 filmes')).toBeInTheDocument()
+    expect(within(catalog).queryByRole('link', { name: 'Gran Turismo' })).not.toBeInTheDocument()
+    expect(new URLSearchParams(router.state.location.search).get('ator')).toBe('Xolo Maridueña')
+  })
+
+  it('o nome de quem dirigiu abre o catálogo com os filmes dessa pessoa', async () => {
+    seedDb({
+      movies: [
+        { ...movie, diretores: ['Angel Manuel Soto'] },
+        makeMovieRow({ titulo: 'Gran Turismo', diretores: ['Neill Blomkamp'] }),
+      ],
+    })
+    const { user, router } = renderApp('/filmes/blue-beetle')
+
+    await user.click(await screen.findByRole('link', { name: 'Angel Manuel Soto' }))
+
+    const catalog = await screen.findByRole('region', { name: 'Catálogo' })
+    expect(await within(catalog).findByText('1 filme')).toBeInTheDocument()
+    expect(new URLSearchParams(router.state.location.search).get('diretor')).toBe(
+      'Angel Manuel Soto',
+    )
   })
 
   it('lista as avaliações do filme, da mais recente para a mais antiga', async () => {

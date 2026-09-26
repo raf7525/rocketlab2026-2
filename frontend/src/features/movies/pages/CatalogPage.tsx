@@ -6,68 +6,81 @@ import { SectionHeading } from '../../../shared/components/SectionHeading'
 import { pluralize } from '../../../shared/lib/format'
 import { PopularReviews } from '../../reviews/components/PopularReviews'
 import { CATALOG_PAGE_SIZE } from '../api/moviesApi'
+import { CatalogSearch } from '../components/CatalogSearch'
 import { MovieCard } from '../components/MovieCard'
 import { useMovies } from '../hooks/useMovies'
+import { catalogUrl, hasFilters, readFilters } from '../lib/catalogSearch'
 import styles from './CatalogPage.module.css'
 
 export function CatalogPage() {
   const headingId = useId()
   const [searchParams] = useSearchParams()
   const page = parsePage(searchParams.get('pagina'))
-  const movies = useMovies(page)
+  const filters = readFilters(searchParams)
+  const searching = hasFilters(filters)
+  const movies = useMovies(page, filters)
 
   return (
     <div className={styles.page}>
       <h1 className="visually-hidden">Filmes</h1>
 
-      <section aria-labelledby={headingId}>
-        <SectionHeading
-          id={headingId}
-          aside={movies.data && pluralize(movies.data.total, 'filme', 'filmes')}
-        >
-          Catálogo
-        </SectionHeading>
+      <div className={styles.catalog}>
+        {/* A key recria o formulário quando a busca muda por fora (link, voltar, limpar). */}
+        <CatalogSearch key={catalogUrl(filters)} filters={filters} />
 
-        {movies.isPending && <CatalogSkeleton />}
+        <section aria-labelledby={headingId}>
+          <SectionHeading
+            id={headingId}
+            aside={movies.data && pluralize(movies.data.total, 'filme', 'filmes')}
+          >
+            Catálogo
+          </SectionHeading>
 
-        {movies.isError && !movies.data && (
-          <div role="alert" className={styles.message}>
-            <p>Não foi possível carregar o catálogo.</p>
-            <button type="button" onClick={() => movies.refetch()} className={styles.retry}>
-              Tentar de novo
-            </button>
-          </div>
-        )}
+          {movies.isPending && <CatalogSkeleton />}
 
-        {movies.data?.total === 0 && (
-          <p className={styles.message}>Nenhum filme no catálogo ainda.</p>
-        )}
+          {movies.isError && !movies.data && (
+            <div role="alert" className={styles.message}>
+              <p>Não foi possível carregar o catálogo.</p>
+              <button type="button" onClick={() => movies.refetch()} className={styles.retry}>
+                Tentar de novo
+              </button>
+            </div>
+          )}
 
-        {movies.data && movies.data.total > 0 && movies.data.items.length === 0 && (
-          <p className={styles.message}>
-            Esta página não existe. <Link to="/">Ir para a primeira página</Link>
-          </p>
-        )}
+          {movies.data?.total === 0 && (
+            <p className={styles.message}>
+              {searching ? 'Nenhum filme encontrado.' : 'Nenhum filme no catálogo ainda.'}
+            </p>
+          )}
 
-        {movies.data && movies.data.items.length > 0 && (
-          <>
-            <ul role="list" aria-busy={movies.isPlaceholderData} className={styles.grid}>
-              {movies.data.items.map((movie) => (
-                <li key={movie.sk_movie_id}>
-                  <MovieCard movie={movie} />
-                </li>
-              ))}
-            </ul>
-            <Pagination
-              page={movies.data.page}
-              pages={movies.data.pages}
-              toPage={(target) => (target === 1 ? '/' : `/?pagina=${target}`)}
-            />
-          </>
-        )}
-      </section>
+          {movies.data && movies.data.total > 0 && movies.data.items.length === 0 && (
+            <p className={styles.message}>
+              Esta página não existe.{' '}
+              <Link to={catalogUrl(filters)}>Ir para a primeira página</Link>
+            </p>
+          )}
 
-      <PopularReviews />
+          {movies.data && movies.data.items.length > 0 && (
+            <>
+              <ul role="list" aria-busy={movies.isPlaceholderData} className={styles.grid}>
+                {movies.data.items.map((movie) => (
+                  <li key={movie.sk_movie_id}>
+                    <MovieCard movie={movie} />
+                  </li>
+                ))}
+              </ul>
+              <Pagination
+                page={movies.data.page}
+                pages={movies.data.pages}
+                toPage={(target) => catalogUrl(filters, target)}
+              />
+            </>
+          )}
+        </section>
+      </div>
+
+      {/* Durante uma busca, só os resultados interessam. */}
+      {!searching && <PopularReviews />}
     </div>
   )
 }

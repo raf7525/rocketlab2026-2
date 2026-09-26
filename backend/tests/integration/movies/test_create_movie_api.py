@@ -57,6 +57,7 @@ async def test_create_movie_returns_the_movie_detail(client: httpx.AsyncClient) 
         "sinopse": "A história de J. Robert Oppenheimer.",
         "url_backdrop": None,
         "diretores": ["Christopher Nolan"],
+        "elenco": [],
     }
 
 

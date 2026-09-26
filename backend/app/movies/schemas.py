@@ -5,7 +5,8 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field, StringConstraints, field_validator, model_validator
 
-from app.movies.models import DIRECTOR, DimMovie
+from app.movies.models import ACTOR, DIRECTOR, DimMovie
+from app.shared.pagination import PageParams
 from app.shared.ratings import RatingSummary
 
 # Roundhay Garden Scene (1888) é o filme mais antigo que se conhece.
@@ -40,6 +41,41 @@ class MovieCreate(BaseModel):
         return sinopse or None
 
 
+class MovieUpdate(MovieCreate):
+    """Edição de um filme: os mesmos campos e regras do cadastro, e o envio substitui todos eles.
+
+    O que o formulário não mostra (pôster, duração, elenco, métricas, avaliações) fica como está.
+    """
+
+
+SearchText = Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)]
+
+
+class MovieFilters(BaseModel):
+    """Busca e filtros do catálogo, todos opcionais e combinados entre si (E).
+
+    Texto em branco é o mesmo que não filtrar.
+    """
+
+    busca: SearchText | None = None
+    """Parte do título, sem diferenciar maiúsculas."""
+    genero: SearchText | None = None
+    """Nome exato do gênero, sem diferenciar maiúsculas."""
+    diretor: SearchText | None = None
+    """Parte do nome de quem dirigiu."""
+    ator: SearchText | None = None
+    """Parte do nome de alguém do elenco."""
+
+    @field_validator("busca", "genero", "diretor", "ator")
+    @classmethod
+    def _blank_is_none(cls, value: str | None) -> str | None:
+        return value or None
+
+
+class CatalogParams(MovieFilters, PageParams):
+    """Query string do catálogo: o FastAPI só lê um modelo por query, então os dois viram um."""
+
+
 class MovieSummary(RatingSummary):
     """Filme como aparece no catálogo, com os nomes dos gêneros e o resumo das avaliações."""
 
@@ -55,7 +91,7 @@ class MovieSummary(RatingSummary):
     def _flatten_movie(cls, data: object) -> object:
         """Aceita um `DimMovie` com `genres` e `reviews_summary` já carregados.
 
-        O detalhe (`MovieDetail`) também precisa de `people`, para listar os diretores.
+        O detalhe (`MovieDetail`) também precisa de `people`, para listar diretores e elenco.
         """
 
         if not isinstance(data, DimMovie):
@@ -71,6 +107,11 @@ class MovieSummary(RatingSummary):
             flat["diretores"] = sorted(
                 person.nome_pessoa for person in data.people if person.tipo_pessoa == DIRECTOR
             )
+        if "elenco" in cls.model_fields:
+            # O CSV não traz a ordem dos créditos; a alfabética é a única que não engana.
+            flat["elenco"] = sorted(
+                person.nome_pessoa for person in data.people if person.tipo_pessoa == ACTOR
+            )
         return flat
 
 
@@ -82,3 +123,4 @@ class MovieDetail(MovieSummary):
     sinopse: str | None
     url_backdrop: str | None
     diretores: list[str]
+    elenco: list[str]

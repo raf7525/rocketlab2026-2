@@ -1,10 +1,21 @@
 """Consultas ao banco usadas pelo catálogo de filmes."""
 
-from sqlalchemy import func, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
-from app.movies.models import DimGenre, DimMovie, DimPerson, FactMoviePerformance, PersonType
+from app.movies.models import (
+    ACTOR,
+    DIRECTOR,
+    DimGenre,
+    DimMovie,
+    DimPerson,
+    FactMoviePerformance,
+    PersonType,
+    bridge_movie_genre,
+    bridge_movie_person,
+)
+from app.movies.schemas import MovieFilters
 
 # O que as respostas de filme mostram além das colunas de `dim_movies`.
 _WITH_GENRES_AND_RATING = (
@@ -13,15 +24,46 @@ _WITH_GENRES_AND_RATING = (
 )
 
 
-async def count_movies(session: AsyncSession) -> int:
-    return await session.scalar(select(func.count()).select_from(DimMovie)) or 0
+def _filtered(query: Select, filters: MovieFilters) -> Select:
+    """Aplica busca e filtros. Subconsultas (IN) em vez de joins: o filme nunca se repete."""
+
+    if filters.busca:
+        query = query.where(DimMovie.titulo.icontains(filters.busca, autoescape=True))
+    if filters.genero:
+        query = query.where(
+            DimMovie.sk_movie_id.in_(
+                select(bridge_movie_genre.c.sk_movie_id)
+                .join(DimGenre)
+                .where(func.lower(DimGenre.nome_genero) == filters.genero.lower())
+            )
+        )
+    for tipo, nome in ((DIRECTOR, filters.diretor), (ACTOR, filters.ator)):
+        if nome:
+            query = query.where(
+                DimMovie.sk_movie_id.in_(
+                    select(bridge_movie_person.c.sk_movie_id)
+                    .join(DimPerson)
+                    .where(
+                        DimPerson.tipo_pessoa == tipo,
+                        DimPerson.nome_pessoa.icontains(nome, autoescape=True),
+                    )
+                )
+            )
+    return query
 
 
-async def list_movies(session: AsyncSession, offset: int, limit: int) -> list[DimMovie]:
+async def count_movies(session: AsyncSession, filters: MovieFilters) -> int:
+    query = _filtered(select(func.count()).select_from(DimMovie), filters)
+    return await session.scalar(query) or 0
+
+
+async def list_movies(
+    session: AsyncSession, filters: MovieFilters, offset: int, limit: int
+) -> list[DimMovie]:
     """Uma fatia do catálogo, dos filmes mais populares para os menos (sem dados por último)."""
 
     result = await session.scalars(
-        select(DimMovie)
+        _filtered(select(DimMovie), filters)
         .outerjoin(DimMovie.performance)
         .options(*_WITH_GENRES_AND_RATING)
         .order_by(
@@ -36,7 +78,7 @@ async def list_movies(session: AsyncSession, offset: int, limit: int) -> list[Di
 
 
 async def get_movie(session: AsyncSession, sk_movie_id: str) -> DimMovie | None:
-    """O filme com gêneros, resumo das avaliações e pessoas (para mostrar os diretores)."""
+    """O filme com gêneros, resumo das avaliações e pessoas (para diretores e elenco)."""
 
     return await session.scalar(
         select(DimMovie)

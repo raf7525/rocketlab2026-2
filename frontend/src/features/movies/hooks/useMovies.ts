@@ -1,11 +1,19 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { createMovie, fetchGenres, fetchMovie, fetchMovies } from '../api/moviesApi'
+import {
+  createMovie,
+  deleteMovie,
+  fetchGenres,
+  fetchMovie,
+  fetchMovies,
+  updateMovie,
+} from '../api/moviesApi'
+import type { MovieCreate, MovieFilters } from '../types/movie'
 
 export const movieKeys = {
   all: ['movies'] as const,
   lists: () => [...movieKeys.all, 'list'] as const,
-  list: (page: number) => [...movieKeys.lists(), page] as const,
+  list: (page: number, filters: MovieFilters) => [...movieKeys.lists(), page, filters] as const,
   detail: (movieId: string) => [...movieKeys.all, 'detail', movieId] as const,
 }
 
@@ -13,11 +21,14 @@ export const genreKeys = {
   all: ['genres'] as const,
 }
 
-/** Uma página do catálogo. Ao trocar de página, a anterior continua na tela até a nova chegar. */
-export function useMovies(page: number) {
+/**
+ * Uma página do catálogo, com a busca e os filtros aplicados. Ao trocar de página ou de busca, o
+ * resultado anterior continua na tela até o novo chegar.
+ */
+export function useMovies(page: number, filters: MovieFilters = {}) {
   return useQuery({
-    queryKey: movieKeys.list(page),
-    queryFn: () => fetchMovies(page),
+    queryKey: movieKeys.list(page, filters),
+    queryFn: () => fetchMovies(page, filters),
     placeholderData: keepPreviousData,
   })
 }
@@ -47,5 +58,39 @@ export function useCreateMovie() {
       queryClient.setQueryData(movieKeys.detail(movie.sk_movie_id), movie)
       return queryClient.invalidateQueries({ queryKey: movieKeys.lists() })
     },
+  })
+}
+
+export function useUpdateMovie(movieId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: MovieCreate) => updateMovie(movieId, data),
+    // O detalhe já vem na resposta; título e gêneros também aparecem no catálogo e nas reviews,
+    // que são atualizados em segundo plano (salvar não espera por eles).
+    onSuccess: (movie) => {
+      queryClient.setQueryData(movieKeys.detail(movieId), movie)
+      void Promise.all([
+        queryClient.invalidateQueries({ queryKey: movieKeys.lists() }),
+        // `reviewKeys.all`: importar de reviews criaria um ciclo entre os dois módulos.
+        queryClient.invalidateQueries({ queryKey: ['reviews'] }),
+      ])
+    },
+  })
+}
+
+export function useDeleteMovie(movieId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => deleteMovie(movieId),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: movieKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: ['reviews'] }),
+        // Sem buscar de novo agora: a página ainda aberta mostraria "Filme não encontrado".
+        queryClient.invalidateQueries({
+          queryKey: movieKeys.detail(movieId),
+          refetchType: 'none',
+        }),
+      ]),
   })
 }

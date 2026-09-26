@@ -22,6 +22,7 @@ export function makeMovieRow(overrides: Partial<MovieRow> = {}): MovieRow {
     url_backdrop: `https://image.tmdb.org/t/p/w1280/fundo-${n}.jpg`,
     generos: ['Action'],
     diretores: ['Angel Manuel Soto'],
+    elenco: ['Xolo Maridueña'],
     ...overrides,
   }
 }

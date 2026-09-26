@@ -24,12 +24,13 @@ export const handlers = [
     const page = Math.max(1, Number(params.get('page') ?? 1))
     const pageSize = Math.max(1, Number(params.get('page_size') ?? 24))
     const start = (page - 1) * pageSize
+    const movies = db.movies.filter(matchesFilters(params))
     return HttpResponse.json({
-      items: db.movies.slice(start, start + pageSize).map(toMovieSummary),
-      total: db.movies.length,
+      items: movies.slice(start, start + pageSize).map(toMovieSummary),
+      total: movies.length,
       page,
       page_size: pageSize,
-      pages: Math.ceil(db.movies.length / pageSize),
+      pages: Math.ceil(movies.length / pageSize),
     })
   }),
 
@@ -56,6 +57,7 @@ export const handlers = [
       url_backdrop: null,
       generos: data.generos.map((name) => findGenre(name)!).sort(),
       diretores: [...data.diretores].sort(),
+      elenco: [],
     }
     // Sem popularidade, o filme novo vai para o fim do catálogo, como no backend.
     db.movies.push(movie)
@@ -66,6 +68,39 @@ export const handlers = [
     await delay()
     const movie = findMovie(params)
     return movie ? HttpResponse.json(toMovieDetail(movie)) : movieNotFound()
+  }),
+
+  http.put(`${API}/movies/:movieId`, async ({ params, request }) => {
+    await delay()
+    const movie = findMovie(params)
+    if (!movie) return movieNotFound()
+    const data = parseMovie(await request.json())
+    if (!data) {
+      return HttpResponse.json({ detail: [{ msg: 'Filme inválido.' }] }, { status: 422 })
+    }
+    const unknown = data.generos.filter((name) => !findGenre(name))
+    if (unknown.length > 0) {
+      const label = unknown.length === 1 ? 'Gênero desconhecido' : 'Gêneros desconhecidos'
+      return HttpResponse.json({ detail: `${label}: ${unknown.join(', ')}.` }, { status: 422 })
+    }
+    // Como no backend: uma data de lançamento de outro ano sai; pôster, elenco etc. ficam.
+    const releaseYear = movie.data_lancamento && Number(movie.data_lancamento.slice(0, 4))
+    if (releaseYear && releaseYear !== data.ano_lancamento) movie.data_lancamento = null
+    movie.titulo = data.titulo
+    movie.ano_lancamento = data.ano_lancamento
+    movie.sinopse = data.sinopse
+    movie.generos = data.generos.map((name) => findGenre(name)!).sort()
+    movie.diretores = [...data.diretores].sort()
+    return HttpResponse.json(toMovieDetail(movie))
+  }),
+
+  http.delete(`${API}/movies/:movieId`, async ({ params }) => {
+    await delay()
+    const movie = findMovie(params)
+    if (!movie) return movieNotFound()
+    db.movies = db.movies.filter((row) => row !== movie)
+    db.reviews = db.reviews.filter((review) => review.sk_movie_id !== movie.sk_movie_id)
+    return new HttpResponse(null, { status: 204 })
   }),
 
   http.get(`${API}/genres`, async () => {
@@ -125,6 +160,26 @@ export const handlers = [
     return HttpResponse.json(popular.map(toPopularReview))
   }),
 ]
+
+/**
+ * Mesmas regras do backend: título, direção e elenco por parte do texto, gênero pelo nome
+ * inteiro, sem diferenciar maiúsculas; filtros em branco não filtram.
+ */
+function matchesFilters(params: URLSearchParams): (movie: MovieRow) => boolean {
+  const value = (name: string) => params.get(name)?.trim().toLowerCase() || null
+  const busca = value('busca')
+  const genero = value('genero')
+  const diretor = value('diretor')
+  const ator = value('ator')
+  const someContains = (names: string[], part: string) =>
+    names.some((name) => name.toLowerCase().includes(part))
+
+  return (movie) =>
+    (!busca || movie.titulo.toLowerCase().includes(busca)) &&
+    (!genero || movie.generos.some((name) => name.toLowerCase() === genero)) &&
+    (!diretor || someContains(movie.diretores, diretor)) &&
+    (!ator || someContains(movie.elenco, ator))
+}
 
 function findMovie(params: PathParams): MovieRow | undefined {
   return db.movies.find((movie) => movie.sk_movie_id === params.movieId)
@@ -240,6 +295,7 @@ function toMovieDetail(movie: MovieRow): MovieDetail {
     sinopse: movie.sinopse,
     url_backdrop: movie.url_backdrop,
     diretores: movie.diretores,
+    elenco: movie.elenco,
   }
 }
 

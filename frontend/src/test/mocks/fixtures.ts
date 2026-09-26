@@ -1,7 +1,7 @@
 // Gerado a partir dos CSVs (dim_movies, dim_genres, dim_people, bridge_movie_genre,
-// bridge_movie_person, movies_reviews): os 48 filmes mais populares com pôster, com gêneros e
-// diretores. As curtidas NÃO existem no CSV; os valores aqui são inventados (determinísticos)
-// só para os dados de exemplo.
+// bridge_movie_person, movies_reviews): os 48 filmes mais populares com pôster, com gêneros,
+// diretores e elenco. As curtidas NÃO existem no CSV; os valores aqui são inventados
+// (determinísticos) só para os dados de exemplo.
 import type { MovieRow, ReviewRow } from './db'
 
 export const movieRows: MovieRow[] = [
@@ -22,6 +22,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Neill Blomkamp"
+    ],
+    "elenco": [
+      "Archie Madekwe",
+      "Daniel Puig",
+      "Darren Barnet",
+      "David Harbour",
+      "Djimon Hounsou",
+      "Geri Horner",
+      "Josha Stradowski",
+      "Maeve Courtier-lilley",
+      "Orlando Bloom",
+      "Thomas Kretschmann"
     ]
   },
   {
@@ -41,6 +53,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Ben Wheatley"
+    ],
+    "elenco": [
+      "Cliff Curtis",
+      "Jason Statham",
+      "Melissanthi Mahut",
+      "Page Kennedy",
+      "Sergio Peris-mencheta",
+      "Shuya Sophia Cai",
+      "Sienna Guillory",
+      "Skyler Samuels",
+      "Whoopie Van Raam",
+      "Wu Jing"
     ]
   },
   {
@@ -61,6 +85,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Nimród Antal"
+    ],
+    "elenco": [
+      "Arian Moayed",
+      "Bernhard Piesk",
+      "Embeth Davidtz",
+      "Emily Kusche",
+      "Jack Champion",
+      "Liam Neeson",
+      "Lilly Aspell",
+      "Luca Márkus",
+      "Matthew Modine",
+      "Noma Dumezweni"
     ]
   },
   {
@@ -80,6 +116,18 @@ export const movieRows: MovieRow[] = [
     "diretores": [
       "Danny Philippou",
       "Michael Philippou"
+    ],
+    "elenco": [
+      "Alexandra Jensen",
+      "Alexandria Steffensen",
+      "Ari Mccarthy",
+      "Chris Alosio",
+      "Joe Bird",
+      "Marcus Johnson",
+      "Miranda Otto",
+      "Otis Dhanji",
+      "Sophie Wilde",
+      "Zoe Terakes"
     ]
   },
   {
@@ -101,6 +149,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Peter Sohn"
+    ],
+    "elenco": [
+      "Catherine O'hara",
+      "Joe Pera",
+      "Leah Lewis",
+      "Mamoudou Athie",
+      "Mason Wertheimer",
+      "Matthew Yang King",
+      "Ronobir Lahiri",
+      "Shila Ommi",
+      "Wendi Mclendon-covey",
+      "Wilma Bonet"
     ]
   },
   {
@@ -118,6 +178,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Óskar Thór Axelsson"
+    ],
+    "elenco": [
+      "Atli Óskar Fjalarsson",
+      "Iain Glen",
+      "Jack Fox",
+      "Jaymes Butler",
+      "Nanna Kristín Magnúsdóttir",
+      "Sabine Crossen",
+      "Vivian Ólafsdóttir",
+      "Wotan Wilke Möhring",
+      "Ólafur Darri Ólafsson",
+      "Þröstur Leó Gunnarsson"
     ]
   },
   {
@@ -137,6 +209,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Brian Duffield"
+    ],
+    "elenco": [
+      "Dane Rhodes",
+      "Daniel Rigamer",
+      "Dari Lynn Griffin",
+      "Elizabeth Kaluev",
+      "Emani White",
+      "Evangeline Rose",
+      "Gabrielle Bordlee Mauro",
+      "Geraldine Singer",
+      "Kaitlyn Dever",
+      "Lauren L. Murray"
     ]
   },
   {
@@ -156,6 +240,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Kevin Greutert"
+    ],
+    "elenco": [
+      "Jorge Briseño",
+      "Joshua Okamoto",
+      "Michael Beach",
+      "Octavio Hinojosa Martínez",
+      "Paulette Hernández",
+      "Renata Vaca",
+      "Shawnee Smith",
+      "Steven Brand",
+      "Synnøve Macody Lund",
+      "Tobin Bell"
     ]
   },
   {
@@ -176,6 +272,18 @@ export const movieRows: MovieRow[] = [
     "diretores": [
       "Jeff Rowe",
       "Kyler Spears"
+    ],
+    "elenco": [
+      "Ayo Edebiri",
+      "Brady Noon",
+      "John Cena",
+      "Maya Rudolph",
+      "Micah Abbey",
+      "Natasia Demetriou",
+      "Nicolas Cantu",
+      "Rose Byrne",
+      "Seth Rogen",
+      "Shamon Brown Jr."
     ]
   },
   {
@@ -195,6 +303,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Scott Waugh"
+    ],
+    "elenco": [
+      "50 Cent",
+      "Andy García",
+      "Dolph Lundgren",
+      "Iko Uwais",
+      "Jacob Scipio",
+      "Jason Statham",
+      "Megan Fox",
+      "Randy Couture",
+      "Sylvester Stallone",
+      "Tony Jaa"
     ]
   },
   {
@@ -214,6 +334,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Andy Muschietti"
+    ],
+    "elenco": [
+      "Antje Traue",
+      "Ezra Miller",
+      "Kiersey Clemons",
+      "Maribel Verdú",
+      "Michael Keaton",
+      "Michael Shannon",
+      "Ron Livingston",
+      "Rudy Mancuso",
+      "Saoirse-monica Jackson",
+      "Sasha Calle"
     ]
   },
   {
@@ -231,7 +363,19 @@ export const movieRows: MovieRow[] = [
       "Crime",
       "Thriller"
     ],
-    "diretores": []
+    "diretores": [],
+    "elenco": [
+      "Anna Bielawska",
+      "Artur Krajewski",
+      "Filip Lipiecki",
+      "Jakub Nosiadek",
+      "Juliusz Chrząstowski",
+      "Maciej Musiałowski",
+      "Michał Sikorski",
+      "Nel Kaczmarek",
+      "Olek Krupa",
+      "Roman Gancarczyk"
+    ]
   },
   {
     "sk_movie_id": "45e4b17aa16e19ce8ccb5263bccea9f0fdff94b650b6da583ffa2991d93ab27c",
@@ -250,6 +394,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Corin Hardy"
+    ],
+    "elenco": [
+      "Bonnie Aarons",
+      "Charlotte Hope",
+      "Demián Bichir",
+      "Ingrid Bisu",
+      "Jonas Bloquet",
+      "Lili Taylor",
+      "Patrick Wilson",
+      "Sandra Teles",
+      "Taissa Farmiga",
+      "Vera Farmiga"
     ]
   },
   {
@@ -270,6 +426,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Rob Marshall"
+    ],
+    "elenco": [
+      "Art Malik",
+      "Awkwafina",
+      "Daveed Diggs",
+      "Halle Bailey",
+      "Jacob Tremblay",
+      "Javier Bardem",
+      "Jessica Alexander",
+      "Jonah Hauer-king",
+      "Melissa Mccarthy",
+      "Noma Dumezweni"
     ]
   },
   {
@@ -288,6 +456,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Greg Keith"
+    ],
+    "elenco": [
+      "Alister Hawke",
+      "Andrea Bechis",
+      "Gaston Alexander",
+      "Jamie Sordyl",
+      "Jodyanne Richardson",
+      "Julia Quayle",
+      "Madalena Alberto",
+      "Simon Ellis",
+      "Steevan Glover",
+      "Stephen Samson"
     ]
   },
   {
@@ -309,6 +489,18 @@ export const movieRows: MovieRow[] = [
     "diretores": [
       "Faryn Pearl",
       "Kirk Demicco"
+    ],
+    "elenco": [
+      "Annie Murphy",
+      "Blue Chapman",
+      "Colman Domingo",
+      "Jaboukie Young-white",
+      "Lana Condor",
+      "Liza Koshy",
+      "Ramona Young",
+      "Sam Richardson",
+      "Toni Collette",
+      "Will Forte"
     ]
   },
   {
@@ -327,6 +519,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "André Øvredal"
+    ],
+    "elenco": [
+      "Aisling Franciosi",
+      "Chris Walley",
+      "Corey Hawkins",
+      "David Dastmalchian",
+      "Javier Botet",
+      "Jon Jon Briones",
+      "Liam Cunningham",
+      "Martin Furulund",
+      "Nikolai Nikolaeff",
+      "Stefan Kapičić"
     ]
   },
   {
@@ -345,6 +549,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Rajendra Reddy"
+    ],
+    "elenco": [
+      "Ashika Ranganath",
+      "Brahmaji",
+      "Chaitanya Krishna",
+      "Jayaprakash",
+      "Kalyan Ram",
+      "Raghu Karumanchi",
+      "Rajeev Pillai",
+      "Ravi Prakash",
+      "Saptagiri",
+      "Sivannarayana Naripeddi"
     ]
   },
   {
@@ -363,6 +579,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Dae-min Park"
+    ],
+    "elenco": [
+      "Choi Deok-moon",
+      "Han Hyun-min",
+      "Heo Dong-won",
+      "Jun Suk-ho",
+      "Jung Hyeon-jun",
+      "Kim Eui-sung",
+      "Park So-dam",
+      "Song Sae-byuk",
+      "Yeom Hye-ran",
+      "Yeon Woo-jin"
     ]
   },
   {
@@ -380,7 +608,19 @@ export const movieRows: MovieRow[] = [
       "Animation",
       "Horror"
     ],
-    "diretores": []
+    "diretores": [],
+    "elenco": [
+      "Cristina Valenzuela",
+      "Daman Mills",
+      "Erin Cahill",
+      "Frank Todaro",
+      "Kevin Dorman",
+      "Lucien Dodge",
+      "Matthew Mercer",
+      "Nicole Tompkins",
+      "Salli Saffioti",
+      "Stephanie Panisello"
+    ]
   },
   {
     "sk_movie_id": "075ecd341cec10fdee945bc0ebc139dab8e5084935634db2268800b98e147354",
@@ -399,6 +639,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Michael D. Olmos"
+    ],
+    "elenco": [
+      "Antonio Fargas",
+      "Cedric Joe",
+      "Isaiah C. Morgan",
+      "James Udom",
+      "Keyon Bowman",
+      "Medina Senghore",
+      "Mike Colter",
+      "Rhys Coiro",
+      "Stephanie Sigman",
+      "Steven Prescod"
     ]
   },
   {
@@ -418,6 +670,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Nicholas Maggio"
+    ],
+    "elenco": [
+      "Ashley Benson",
+      "Emily Tremaine",
+      "Jesse Sharp",
+      "John Travolta",
+      "Kevin Dillon",
+      "Robert Miano",
+      "Shiloh Fernandez",
+      "Stephen Dorff",
+      "Timothy V. Murphy",
+      "Tommy G. Kendrick"
     ]
   },
   {
@@ -438,6 +702,18 @@ export const movieRows: MovieRow[] = [
     "diretores": [
       "Matt Bettinelli-olpin",
       "Tyler Gillett"
+    ],
+    "elenco": [
+      "Dermot Mulroney",
+      "Devyn Nekoda",
+      "Jack Champion",
+      "Jasmin Savoy Brown",
+      "Jenna Ortega",
+      "Josh Segarra",
+      "Liana Liberato",
+      "Mason Gooding",
+      "Melissa Barrera",
+      "Roger L. Jackson"
     ]
   },
   {
@@ -457,6 +733,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Christian Sesma"
+    ],
+    "elenco": [
+      "Lorin Mccraley",
+      "Luke Goss",
+      "Mary Christina Brown",
+      "Mercedes Kilmer",
+      "Mike Hatton",
+      "Mirtha Michelle",
+      "Murielle Telio",
+      "Paul Sloan",
+      "Val Kilmer",
+      "Veronika Bozeman"
     ]
   },
   {
@@ -480,6 +768,18 @@ export const movieRows: MovieRow[] = [
     "diretores": [
       "Januel Mercado",
       "Joel Crawford"
+    ],
+    "elenco": [
+      "Antonio Banderas",
+      "Da'vine Joy Randolph",
+      "Florence Pugh",
+      "Harvey Guillén",
+      "John Mulaney",
+      "Olivia Colman",
+      "Ray Winstone",
+      "Salma Hayek Pinault",
+      "Samson Kayo",
+      "Wagner Moura"
     ]
   },
   {
@@ -500,6 +800,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Cal Brunker"
+    ],
+    "elenco": [
+      "Callum Shoniker",
+      "Iain Armitage",
+      "Keegan Hedley",
+      "Kim Roberts",
+      "Kingsley Marshall",
+      "Lilly Bartlam",
+      "Ron Pardo",
+      "Shayle Simons",
+      "Tyler Perry",
+      "Will Brisbin"
     ]
   },
   {
@@ -523,6 +835,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Jeremy Zag"
+    ],
+    "elenco": [
+      "Alexandre N'guyen",
+      "Annouck Hautbois",
+      "Antoine Tomé",
+      "Benjamin Bollen",
+      "Fanny Bloc",
+      "Flora Kaprielian",
+      "Franck Tordjman",
+      "Marie Chevalot",
+      "Marie Nonnenmacher",
+      "Martial Le Minoux"
     ]
   },
   {
@@ -540,6 +864,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Samuel Bodin"
+    ],
+    "elenco": [
+      "Anton Kottas",
+      "Antony Starr",
+      "Cleopatra Coleman",
+      "Iliyan Nikolov",
+      "Jay Rincon",
+      "Jivko Mihaylov",
+      "Lizzy Caplan",
+      "Luke Busey",
+      "Steffanie Sampson",
+      "Woody Norman"
     ]
   },
   {
@@ -557,6 +893,15 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Linnet Zurbano"
+    ],
+    "elenco": [
+      "Alexa Ocampo",
+      "Angela Morena",
+      "Jela Cuenca",
+      "Jiad Arroyo",
+      "Julia Victoria",
+      "Keanna Reeves",
+      "Yuki Sakamoto"
     ]
   },
   {
@@ -576,6 +921,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Darren Lynn Bousman"
+    ],
+    "elenco": [
+      "Chris Rock",
+      "Dan Petronijevic",
+      "Edie Inksetter",
+      "Marisol Nichols",
+      "Max Minghella",
+      "Nazneen Contractor",
+      "Patrick Mcmanus",
+      "Richard Zeppieri",
+      "Samuel L. Jackson",
+      "Thomas Mitchell"
     ]
   },
   {
@@ -593,6 +950,16 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Trey Murphy"
+    ],
+    "elenco": [
+      "Brandon Herndon",
+      "Chance Gibbs",
+      "Jason R. Davis",
+      "Matthew Strauser",
+      "Micha Marie Stevens",
+      "Richard Haskins",
+      "Taffeta Darling",
+      "Tom Young"
     ]
   },
   {
@@ -612,6 +979,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Pablo Larraín"
+    ],
+    "elenco": [
+      "Alfredo Castro",
+      "Amparo Noguera",
+      "Antonia Zegers",
+      "Catalina Guerra",
+      "Diego Muñoz",
+      "Gloria Münchmeyer",
+      "Jaime Vadell",
+      "Marcial Tagle",
+      "Paula Luchsinger",
+      "Stella Gonet"
     ]
   },
   {
@@ -631,6 +1010,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Tomasz Bagiński"
+    ],
+    "elenco": [
+      "Diego Tinoco",
+      "Famke Janssen",
+      "Katie Moy",
+      "Kaylan Teague",
+      "Mackenyu",
+      "Madison Iseman",
+      "Mark Dacascos",
+      "Nick Stahl",
+      "Ryusei Iwata",
+      "Sean Bean"
     ]
   },
   {
@@ -648,6 +1039,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Johannes Persson"
+    ],
+    "elenco": [
+      "Amanda Lindh",
+      "Anders Pihlblad",
+      "Annica Liljeblad",
+      "Emelina Rosenstielke",
+      "Emma Suki",
+      "Joel Lützow",
+      "Michael Odhag",
+      "Molly Nutley",
+      "Sofia Kappel",
+      "Vincent Grahl"
     ]
   },
   {
@@ -666,6 +1069,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Lee Cronin"
+    ],
+    "elenco": [
+      "Alyssa Sutherland",
+      "Gabrielle Echols",
+      "Jayden Daniels",
+      "Lily Sullivan",
+      "Mark Mitchinson",
+      "Mirabai Pease",
+      "Morgan Davies",
+      "Nell Fisher",
+      "Noah Paul",
+      "Tai Wano"
     ]
   },
   {
@@ -684,6 +1099,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Benjamin Rocher"
+    ],
+    "elenco": [
+      "Adrien Ménielle",
+      "Alban Lenoir",
+      "Barbara Elisabeth Bühl",
+      "Cassiopée Mayance",
+      "Jean Reno",
+      "Jean-toussaint Bernard",
+      "Oumar Diaw",
+      "Sofia Essaïdi",
+      "Stéfi Celma",
+      "Sébastien Lalanne"
     ]
   },
   {
@@ -703,6 +1130,16 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Asif Akbar"
+    ],
+    "elenco": [
+      "Chael Sonnen",
+      "Chris Maher",
+      "Donald Cerrone",
+      "Kelly Lynn Reiter",
+      "Quinton 'rampage' Jackson",
+      "Saray Morgan",
+      "Weston Cage",
+      "William Mcnamara"
     ]
   },
   {
@@ -723,6 +1160,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Jeff Wamester"
+    ],
+    "elenco": [
+      "Brett Dalton",
+      "Darren Criss",
+      "Ike Amadi",
+      "Jensen Ackles",
+      "John Dimaggio",
+      "Matt Bomer",
+      "Roger Cross",
+      "Stana Katic",
+      "Trevor Devall",
+      "Troy Baker"
     ]
   },
   {
@@ -742,6 +1191,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Jon Watts"
+    ],
+    "elenco": [
+      "Alfred Molina",
+      "Andrew Garfield",
+      "Benedict Cumberbatch",
+      "Jacob Batalon",
+      "Jamie Foxx",
+      "Rhys Ifans",
+      "Thomas Haden Church",
+      "Tom Holland",
+      "Willem Dafoe",
+      "Zendaya"
     ]
   },
   {
@@ -760,6 +1221,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Sam Hargrave"
+    ],
+    "elenco": [
+      "Adam Bessa",
+      "Andro Japaridze",
+      "Chris Hemsworth",
+      "Golshifteh Farahani",
+      "Idris Elba",
+      "Olga Kurylenko",
+      "Sinéad Phelps",
+      "Tinatin Dalakishvili",
+      "Tornike Bziava",
+      "Tornike Gogrichiani"
     ]
   },
   {
@@ -778,6 +1251,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Castille Landon"
+    ],
+    "elenco": [
+      "Arielle Kebbel",
+      "Chance Perdomo",
+      "Frances Turner",
+      "Hero Fiennes Tiffin",
+      "Josephine Langford",
+      "Kiana Madeira",
+      "Louise Lombard",
+      "Mira Sorvino",
+      "Rob Estes",
+      "Stephen Moyer"
     ]
   },
   {
@@ -794,7 +1279,19 @@ export const movieRows: MovieRow[] = [
       "Action",
       "Drama"
     ],
-    "diretores": []
+    "diretores": [],
+    "elenco": [
+      "Florian Munteanu",
+      "Jonathan Majors",
+      "José Benavidez Jr.",
+      "Michael B. Jordan",
+      "Mila Davis-kent",
+      "Phylicia Rashād",
+      "Selenis Leyva",
+      "Tessa Thompson",
+      "Thaddeus J. Mixson",
+      "Wood Harris"
+    ]
   },
   {
     "sk_movie_id": "7a3431079560938fe6314f960d2ce9157225bddf9b92cb012b36d9d569eb2e59",
@@ -811,7 +1308,13 @@ export const movieRows: MovieRow[] = [
       "Science Fiction",
       "Thriller"
     ],
-    "diretores": []
+    "diretores": [],
+    "elenco": [
+      "Brande Roderick",
+      "Chris Maher",
+      "Donald Cerrone",
+      "Kelly Lynn Reiter"
+    ]
   },
   {
     "sk_movie_id": "2e4fa7bd8acc7de44b294b2fcce1718ca43fc6aef1bede8d03adf11df68b871d",
@@ -830,6 +1333,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Hideaki Anno"
+    ],
+    "elenco": [
+      "Kanata Hongo",
+      "Masami Nagasawa",
+      "Minami Hamabe",
+      "Mirai Moriyama",
+      "Nanase Nishino",
+      "Nao Ômori",
+      "Sosuke Ikematsu",
+      "Tasuku Emoto",
+      "Tori Matsuzaka",
+      "Toru Tezuka"
     ]
   },
   {
@@ -846,7 +1361,19 @@ export const movieRows: MovieRow[] = [
       "Horror",
       "Thriller"
     ],
-    "diretores": []
+    "diretores": [],
+    "elenco": [
+      "Ane Rot",
+      "Carlos Alcaide",
+      "Carmela Lloret",
+      "Daniel Grao",
+      "Hamza Zaidi",
+      "Iván Pellicer",
+      "María Cerezuela",
+      "Priscilla Delgado",
+      "Veki Velilla",
+      "Álvaro Mel"
+    ]
   },
   {
     "sk_movie_id": "94ac464ea33f7c9ce13b568a6bf1395ec904b7674bd02fc62d7bedf5190a4cb6",
@@ -863,7 +1390,19 @@ export const movieRows: MovieRow[] = [
       "Comedy",
       "Family"
     ],
-    "diretores": []
+    "diretores": [],
+    "elenco": [
+      "Dahlia Legault",
+      "Darla Delgado",
+      "Kevin Sorbo",
+      "Lily Cardone",
+      "Logan Allen",
+      "Lola Sultan",
+      "Patrick Muldoon",
+      "Ricky Wayne",
+      "Tommi Rose",
+      "Vincent De Paul"
+    ]
   },
   {
     "sk_movie_id": "90b2630391e03cb7b5aa6f9eecbd06348eceb91031c94af54ecc131f133b742d",
@@ -882,6 +1421,18 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Dan Trachtenberg"
+    ],
+    "elenco": [
+      "Amber Midthunder",
+      "Bennett Taylor",
+      "Dakota Beavers",
+      "Dane Diliegro",
+      "Julian Black Antelope",
+      "Michelle Thrush",
+      "Mike Paterson",
+      "Nelson Leis",
+      "Stefany Mathias",
+      "Stormee Kipp"
     ]
   },
   {
@@ -902,6 +1453,16 @@ export const movieRows: MovieRow[] = [
     ],
     "diretores": [
       "Marvick Eduardo Núñez Aguilera"
+    ],
+    "elenco": [
+      "Alejandro Villeli",
+      "Annie Rojas",
+      "Benny Emmanuel",
+      "Eduardo España",
+      "Emilio Treviño",
+      "Gabriel Basurto",
+      "Jorge Rafael",
+      "Mayté Cordero"
     ]
   }
 ]

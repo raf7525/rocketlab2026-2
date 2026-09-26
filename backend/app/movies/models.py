@@ -175,6 +175,7 @@ class DimCompany(Base):
 PERSON_TYPES: tuple[str, ...] = ("Ator", "Diretor", "Roteirista")
 PersonType = Literal["Ator", "Diretor", "Roteirista"]
 DIRECTOR: PersonType = "Diretor"
+ACTOR: PersonType = "Ator"
 
 
 class DimPerson(Base):

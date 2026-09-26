@@ -28,6 +28,11 @@ export function formatList(items: string[]): string {
   return conjunction.format(items)
 }
 
+/** Como `formatList`, mas em pedaços, para cada item virar um elemento (um link, por exemplo). */
+export function formatListParts(items: string[]): { type: 'element' | 'literal'; value: string }[] {
+  return conjunction.formatToParts(items)
+}
+
 /** (1, "curtida", "curtidas") → "1 curtida"; (1500, …) → "1.500 curtidas". */
 export function pluralize(count: number, singular: string, plural: string): string {
   return `${formatCount(count)} ${count === 1 ? singular : plural}`

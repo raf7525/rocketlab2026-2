@@ -22,11 +22,11 @@
   padding: 150px 0 72px;
 }
 
-/* Sobre o fundo, no espaço vazio acima do pôster. */
-.back {
+/* Sobre o fundo, no espaço vazio acima do pôster: voltar à esquerda, edição à direita. */
+.back,
+.editToggle {
   position: absolute;
   top: 24px;
-  left: 0;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -45,12 +45,27 @@
     color 120ms ease-out;
 }
 
-.back:hover {
+.back {
+  left: 0;
+}
+
+.editToggle {
+  right: 0;
+}
+
+.editToggle[aria-pressed='true'] {
+  background: var(--chip);
+  color: var(--chip-text);
+}
+
+.back:hover,
+.editToggle[aria-pressed='false']:hover {
   background: var(--surface-hover);
   color: var(--text-strong);
 }
 
-.back:focus-visible {
+.back:focus-visible,
+.editToggle:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
@@ -141,6 +156,10 @@
   color: var(--text-soft);
 }
 
+.directorNames a:hover {
+  color: var(--text-strong);
+}
+
 .synopsis {
   max-width: 65ch;
   margin-top: -12px;
@@ -166,4 +185,47 @@
   color: var(--text-soft);
   text-transform: uppercase;
   cursor: pointer;
+}
+
+/* Elenco como no Letterboxd: nomes em etiquetas discretas que acendem no hover. */
+.cast {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.castMember {
+  display: block;
+  padding: 4px 10px 2px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-soft);
+  transition:
+    background-color 120ms ease-out,
+    color 120ms ease-out;
+}
+
+.castMember:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+
+.castMember:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Aviso depois de salvar a edição. Vazio, sai do grid (sem abrir um espaço) mas continua na
+   árvore de acessibilidade, para o leitor de tela anunciar quando o texto aparecer. */
+.saved {
+  font-size: 13px;
+  color: var(--star);
+}
+
+.saved:empty {
+  position: absolute;
 }

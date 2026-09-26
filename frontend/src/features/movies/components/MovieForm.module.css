@@ -219,7 +219,18 @@
   color: var(--text-muted);
 }
 
-.cancel:hover {
+.cancelButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.cancel:hover,
+.cancelButton:hover {
   color: var(--text-soft);
 }
 
