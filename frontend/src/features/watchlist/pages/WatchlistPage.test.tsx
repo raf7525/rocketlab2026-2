@@ -93,6 +93,27 @@ describe('Watchlist', () => {
     expect(within(watchlist()).queryByRole('link', { name: 'Dune' })).not.toBeInTheDocument()
   })
 
+  it('o botão de voltar leva para a página do catálogo de onde abriu a watchlist', async () => {
+    seedDb({ movies: Array.from({ length: 30 }, (_, i) => makeMovieRow({ titulo: `Filme ${i}` })) })
+    const { user, router } = renderApp('/?pagina=2')
+
+    await user.click(await screen.findByRole('link', { name: 'Watchlist' }))
+    await user.click(await screen.findByRole('button', { name: 'Voltar ao catálogo' }))
+
+    expect(await screen.findByRole('region', { name: 'Catálogo' })).toBeInTheDocument()
+    expect(router.state.location.search).toBe('?pagina=2')
+  })
+
+  it('aberta por link direto, o botão de voltar leva ao início do catálogo', async () => {
+    seedDb({ movies: [matrix] })
+    const { user, router } = renderApp('/watchlist')
+
+    await user.click(await screen.findByRole('button', { name: 'Voltar ao catálogo' }))
+
+    expect(await screen.findByRole('region', { name: 'Catálogo' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/')
+  })
+
   it('a página do filme também tem o botão de salvar', async () => {
     seedDb({ movies: [matrix] })
     const { user } = renderApp('/filmes/matrix')

@@ -5,6 +5,7 @@ import { Pagination } from '../../../shared/components/Pagination'
 import { SectionHeading } from '../../../shared/components/SectionHeading'
 import { pluralize } from '../../../shared/lib/format'
 import { MovieGrid } from '../../movies/components/MovieGrid'
+import { useBackToCatalog } from '../../movies/hooks/useBackToCatalog'
 import { BookmarkIcon } from '../components/BookmarkIcon'
 import { useWatchlist } from '../hooks/useWatchlist'
 import styles from './WatchlistPage.module.css'
@@ -15,11 +16,16 @@ export function WatchlistPage() {
   const [searchParams] = useSearchParams()
   const page = Math.max(1, Number(searchParams.get('pagina')) || 1)
   const watchlist = useWatchlist(page)
+  const backToCatalog = useBackToCatalog()
 
   return (
     <div className={styles.page}>
       {/* Como no catálogo: o título da seção já diz onde se está. */}
       <h1 className="visually-hidden">Watchlist</h1>
+
+      <button type="button" onClick={backToCatalog} className={styles.back}>
+        <span aria-hidden="true">←</span> Voltar ao catálogo
+      </button>
 
       <section aria-labelledby={headingId}>
         <SectionHeading
