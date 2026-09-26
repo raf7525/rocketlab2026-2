@@ -33,6 +33,7 @@ export function MovieEditor({ movie, onSaved, onCancel, onDeleted }: Props) {
           diretores: movie.diretores,
           generos: movie.generos,
           sinopse: movie.sinopse,
+          elenco: movie.elenco,
         }}
         pending={updateMovie.isPending}
         error={updateMovie.error}

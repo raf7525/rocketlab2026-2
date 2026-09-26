@@ -49,4 +49,6 @@ export type MovieCreate = {
   /** Nomes que precisam existir em `GET /genres`. */
   generos: string[]
   sinopse: string | null
+  /** Atores e atrizes; opcional (pode ir vazio). Na edição, troca o elenco do filme. */
+  elenco: string[]
 }

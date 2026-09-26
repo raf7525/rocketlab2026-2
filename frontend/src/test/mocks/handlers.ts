@@ -57,7 +57,7 @@ export const handlers = [
       url_backdrop: null,
       generos: data.generos.map((name) => findGenre(name)!).sort(),
       diretores: [...data.diretores].sort(),
-      elenco: [],
+      elenco: [...(data.elenco ?? [])].sort(),
     }
     // Sem popularidade, o filme novo vai para o fim do catálogo, como no backend.
     db.movies.push(movie)
@@ -91,6 +91,8 @@ export const handlers = [
     movie.sinopse = data.sinopse
     movie.generos = data.generos.map((name) => findGenre(name)!).sort()
     movie.diretores = [...data.diretores].sort()
+    // Sem `elenco`, o backend mantém o atual; com ele (mesmo vazio), troca.
+    if (data.elenco) movie.elenco = [...data.elenco].sort()
     return HttpResponse.json(toMovieDetail(movie))
   }),
 
@@ -215,10 +217,13 @@ function parseReview(body: unknown): Pick<ReviewRow, 'nome' | 'nota' | 'comentar
 
 /**
  * Mesmas regras do `MovieCreate`: textos aparados, ano inteiro de 1888 a 2100, ao menos um
- * diretor e um gênero (repetidos contam uma vez) e sinopse opcional.
+ * diretor e um gênero (repetidos contam uma vez), sinopse e elenco opcionais. O elenco fica
+ * `undefined` quando não vem, para a edição saber que deve mantê-lo.
  */
-function parseMovie(body: unknown): MovieCreate | null {
-  const { titulo, ano_lancamento, diretores, generos, sinopse } = (body ?? {}) as Record<
+function parseMovie(
+  body: unknown,
+): (Omit<MovieCreate, 'elenco'> & { elenco: string[] | undefined }) | null {
+  const { titulo, ano_lancamento, diretores, generos, sinopse, elenco } = (body ?? {}) as Record<
     string,
     unknown
   >
@@ -229,18 +234,21 @@ function parseMovie(body: unknown): MovieCreate | null {
   const directorNames = parseNames(diretores)
   const genreNames = parseNames(generos)
   if (!directorNames || !genreNames) return null
+  const castNames = elenco === undefined ? undefined : parseNames(elenco, { allowEmpty: true })
+  if (castNames === null) return null
   return {
     titulo: titulo.trim(),
     ano_lancamento,
     diretores: directorNames,
     generos: genreNames,
     sinopse: sinopse?.trim() || null,
+    elenco: castNames,
   }
 }
 
-/** Lista com ao menos um nome; cada um aparado, preenchido e com até 255 caracteres. */
-function parseNames(value: unknown): string[] | null {
-  if (!Array.isArray(value) || value.length === 0) return null
+/** Lista com ao menos um nome (ou vazia, se permitido); cada um aparado, com até 255 caracteres. */
+function parseNames(value: unknown, { allowEmpty = false } = {}): string[] | null {
+  if (!Array.isArray(value) || (value.length === 0 && !allowEmpty)) return null
   const names = value.map((name) => (typeof name === 'string' ? name.trim() : ''))
   if (names.some((name) => !name || name.length > 255)) return null
   const unique = new Map<string, string>()

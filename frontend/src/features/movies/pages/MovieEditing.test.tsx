@@ -38,6 +38,7 @@ describe('Edição do filme', () => {
     expect(within(form).getByRole('textbox', { name: 'Título' })).toHaveValue('Blue Beetle')
     expect(within(form).getByRole('textbox', { name: 'Ano de lançamento' })).toHaveValue('2023')
     expect(within(form).getByRole('textbox', { name: 'Direção' })).toHaveValue('Angel Manuel Soto')
+    expect(within(form).getByRole('textbox', { name: /Elenco/ })).toHaveValue('Xolo Maridueña')
     expect(within(form).getByRole('textbox', { name: /Sinopse/ })).toHaveValue(
       'Jaime Reyes ganha uma armadura alienígena.',
     )
@@ -97,6 +98,26 @@ describe('Edição do filme', () => {
         generos: ['Action', 'Drama', 'Science Fiction'],
       }),
     )
+  })
+
+  it('troca o elenco', async () => {
+    seedDb({ genres: GENRES, movies: [movie] })
+    const { user } = renderApp('/filmes/blue-beetle')
+    const form = await openEditing(user)
+    const cast = within(form).getByRole('textbox', { name: /Elenco/ })
+    await within(form).findByRole('checkbox', { name: 'Action' })
+
+    await user.clear(cast)
+    await user.type(cast, 'Xolo Maridueña, Bruna Marquezine')
+    await user.click(within(form).getByRole('button', { name: 'Salvar alterações' }))
+
+    await screen.findByText('Alterações salvas.')
+    const castSection = screen.getByRole('region', { name: 'Elenco' })
+    expect(within(castSection).getAllByRole('listitem').map((item) => item.textContent)).toEqual([
+      'Bruna Marquezine',
+      'Xolo Maridueña',
+    ])
+    expect(db.movies[0].elenco).toEqual(['Bruna Marquezine', 'Xolo Maridueña'])
   })
 
   it('cancelar descarta as mudanças', async () => {

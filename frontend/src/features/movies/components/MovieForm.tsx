@@ -14,7 +14,7 @@ const MIN_YEAR = 1888
 const MAX_YEAR = 2100
 
 /** Campos que podem ter erro, na ordem da tela (o primeiro inválido recebe o foco). */
-const FIELDS = ['titulo', 'ano_lancamento', 'diretores', 'generos', 'assistido'] as const
+const FIELDS = ['titulo', 'ano_lancamento', 'diretores', 'elenco', 'generos', 'assistido'] as const
 type Field = (typeof FIELDS)[number]
 type Errors = Partial<Record<Field, string>>
 
@@ -64,6 +64,7 @@ export function MovieForm(props: Props) {
   const [titulo, setTitulo] = useState(initial?.titulo ?? '')
   const [ano, setAno] = useState(initial?.ano_lancamento?.toString() ?? '')
   const [diretores, setDiretores] = useState(initial?.diretores.join(', ') ?? '')
+  const [elenco, setElenco] = useState(initial?.elenco.join(', ') ?? '')
   const [generos, setGeneros] = useState<string[]>(initial?.generos ?? [])
   const [sinopse, setSinopse] = useState(initial?.sinopse ?? '')
   const [assistido, setAssistido] = useState<boolean | null>(null)
@@ -85,7 +86,8 @@ export function MovieForm(props: Props) {
     event.preventDefault()
     if (pending) return
 
-    const result = parseMovie({ titulo, ano, diretores, generos, sinopse }, askWatched, assistido)
+    const values = { titulo, ano, diretores, elenco, generos, sinopse }
+    const result = parseMovie(values, askWatched, assistido)
     if (!result.ok) {
       setErrors(result.errors)
       const firstInvalid = FIELDS.find((field) => result.errors[field])
@@ -176,6 +178,29 @@ export function MovieForm(props: Props) {
           </p>
           <FieldError id={errorId('diretores')} message={errors.diretores} />
         </div>
+      </div>
+
+      <div data-field="elenco" className={styles.field}>
+        <label htmlFor={`${id}-elenco`} className={styles.label}>
+          Elenco <span className={styles.optional}>(opcional)</span>
+        </label>
+        <input
+          id={`${id}-elenco`}
+          value={elenco}
+          onChange={(event) => {
+            setElenco(event.target.value)
+            clearError('elenco')
+          }}
+          placeholder="Ex.: Keanu Reeves, Carrie-Anne Moss"
+          autoComplete="off"
+          aria-invalid={Boolean(errors.elenco)}
+          aria-describedby={describedBy('elenco', `${id}-elenco-dica`)}
+          className={styles.input}
+        />
+        <p id={`${id}-elenco-dica`} className={styles.hint}>
+          Separe os nomes com vírgulas.
+        </p>
+        <FieldError id={errorId('elenco')} message={errors.elenco} />
       </div>
 
       <fieldset
@@ -320,20 +345,19 @@ type Values = {
   titulo: string
   ano: string
   diretores: string
+  elenco: string
   generos: string[]
   sinopse: string
 }
 type Parsed = { ok: true; data: MovieCreate } | { ok: false; errors: Errors }
 
-/** As mesmas regras do backend: textos aparados, ano no intervalo, direção e gênero obrigatórios. */
+/** As regras do backend: textos aparados, ano no intervalo, direção e gênero obrigatórios. */
 function parseMovie(values: Values, askWatched: boolean, assistido: boolean | null): Parsed {
   const titulo = values.titulo.trim()
   const ano = values.ano.trim()
   const year = Number(ano)
-  const diretores = values.diretores
-    .split(',')
-    .map((name) => name.trim())
-    .filter(Boolean)
+  const diretores = splitNames(values.diretores)
+  const elenco = splitNames(values.elenco)
   const errors: Errors = {}
 
   if (!titulo) errors.titulo = 'Informe o título.'
@@ -344,6 +368,9 @@ function parseMovie(values: Values, askWatched: boolean, assistido: boolean | nu
   if (diretores.length === 0) errors.diretores = 'Informe quem dirigiu o filme.'
   else if (diretores.some((name) => name.length > MAX_NAME)) {
     errors.diretores = `Cada nome pode ter até ${MAX_NAME} caracteres.`
+  }
+  if (elenco.some((name) => name.length > MAX_NAME)) {
+    errors.elenco = `Cada nome pode ter até ${MAX_NAME} caracteres.`
   }
   if (values.generos.length === 0) errors.generos = 'Escolha pelo menos um gênero.'
   if (askWatched && assistido === null) errors.assistido = 'Diga se você já assistiu ao filme.'
@@ -357,6 +384,15 @@ function parseMovie(values: Values, askWatched: boolean, assistido: boolean | nu
       diretores,
       generos: values.generos,
       sinopse: values.sinopse.trim() || null,
+      elenco,
     },
   }
+}
+
+/** "Lana Wachowski, Lilly Wachowski," → ["Lana Wachowski", "Lilly Wachowski"]. */
+function splitNames(text: string): string[] {
+  return text
+    .split(',')
+    .map((name) => name.trim())
+    .filter(Boolean)
 }

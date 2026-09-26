@@ -84,6 +84,34 @@ describe('NewMoviePage', () => {
     expect(db.movies).toEqual([expect.objectContaining({ titulo: 'Matrix' })])
   })
 
+  it('cadastra o elenco, com os nomes separados por vírgula', async () => {
+    const { user } = setup()
+
+    await fillRequiredFields(user)
+    await user.type(
+      screen.getByRole('textbox', { name: /Elenco/ }),
+      'Keanu Reeves, Carrie-Anne Moss, keanu reeves',
+    )
+    await answerWatched(user, 'Sim, já assisti')
+    await submit(user)
+
+    await screen.findByRole('form', { name: 'Avaliar este filme' })
+    expect(db.movies).toEqual([
+      expect.objectContaining({ titulo: 'Matrix', elenco: ['Carrie-Anne Moss', 'Keanu Reeves'] }),
+    ])
+  })
+
+  it('o elenco é opcional', async () => {
+    const { user } = setup()
+
+    await fillRequiredFields(user)
+    await answerWatched(user, 'Ainda não')
+    await submit(user)
+
+    await screen.findByRole('region', { name: 'Catálogo' })
+    expect(db.movies).toEqual([expect.objectContaining({ titulo: 'Matrix', elenco: [] })])
+  })
+
   it('depois de avaliar, volta para a página do catálogo de onde saiu', async () => {
     seedDb({
       genres: GENRES,
