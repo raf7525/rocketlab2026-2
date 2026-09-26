@@ -33,6 +33,7 @@ async def test_create_review_returns_the_saved_review(
     assert body["nota"] == 7
     assert body["estrelas"] == 3.5
     assert body["comentario"] == "Ótimo filme."
+    assert body["curtidas"] == 0
     assert body["sk_movie_review_id"]
     assert body["created_at"]
 

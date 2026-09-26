@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.reviews.schemas import MovieReviewCreate, MovieReviewSummary
+from app.reviews.schemas import MovieReviewCreate
 
 VALID_REVIEW = {"nome": "Ana", "nota": 7, "comentario": "Ótimo filme."}
 
@@ -35,19 +35,3 @@ def test_score_accepts_scale_limits(nota: int) -> None:
 def test_name_and_comment_must_be_filled_and_fit_the_columns(changes: dict[str, str]) -> None:
     with pytest.raises(ValidationError):
         MovieReviewCreate(**{**VALID_REVIEW, **changes})
-
-
-def test_summary_without_reviews_has_no_average() -> None:
-    summary = MovieReviewSummary()
-
-    assert summary.model_dump() == {
-        "qtd_avaliacoes_usuarios": 0,
-        "nota_media_usuarios": None,
-        "estrelas_media": None,
-    }
-
-
-def test_summary_shows_average_in_stars() -> None:
-    summary = MovieReviewSummary(qtd_avaliacoes_usuarios=2, nota_media_usuarios=7.0)
-
-    assert summary.estrelas_media == 3.5

@@ -2,6 +2,7 @@
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from app.movies.models import DimMovie, DimReview, MovieReview
 
@@ -15,6 +16,29 @@ async def list_reviews(session: AsyncSession, sk_movie_id: str) -> list[MovieRev
         select(MovieReview)
         .where(MovieReview.sk_movie_id == sk_movie_id)
         .order_by(MovieReview.created_at.desc())
+    )
+    return list(result)
+
+
+async def get_review(
+    session: AsyncSession, sk_movie_id: str, sk_movie_review_id: str
+) -> MovieReview | None:
+    return await session.scalar(
+        select(MovieReview).where(
+            MovieReview.sk_movie_review_id == sk_movie_review_id,
+            MovieReview.sk_movie_id == sk_movie_id,
+        )
+    )
+
+
+async def list_most_liked(session: AsyncSession, limit: int) -> list[MovieReview]:
+    """As avaliações mais curtidas de todos os filmes (empate: a mais nova primeiro)."""
+
+    result = await session.scalars(
+        select(MovieReview)
+        .options(joinedload(MovieReview.movie))
+        .order_by(MovieReview.curtidas.desc(), MovieReview.created_at.desc())
+        .limit(limit)
     )
     return list(result)
 

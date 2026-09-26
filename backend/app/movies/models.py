@@ -22,6 +22,7 @@ from sqlalchemy import (
     Table,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -219,7 +220,10 @@ class MovieReview(Base):
     """Avaliação individual de um filme na escala de 0 a 10."""
 
     __tablename__ = "movie_reviews"
-    __table_args__ = (CheckConstraint("nota >= 0 AND nota <= 10", name="nota_range"),)
+    __table_args__ = (
+        CheckConstraint("nota >= 0 AND nota <= 10", name="nota_range"),
+        CheckConstraint("curtidas >= 0", name="curtidas_nao_negativas"),
+    )
 
     sk_movie_review_id: Mapped[str] = mapped_column(
         String(64), primary_key=True, default=generate_surrogate_key
@@ -233,6 +237,7 @@ class MovieReview(Base):
     # O default em Python tem microssegundos e mantém a ordem de avaliações criadas no mesmo
     # segundo; o server_default continua cobrindo inserções feitas direto por SQL.
     created_at: Mapped[datetime] = mapped_column(default=utc_now, server_default=func.now())
+    curtidas: Mapped[int] = mapped_column(default=0, server_default=text("0"))
 
     movie: Mapped[DimMovie] = relationship(back_populates="reviews")
 

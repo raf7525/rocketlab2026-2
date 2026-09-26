@@ -17,7 +17,7 @@ export type MovieRow = {
   generos: string[]
 }
 
-/** Linha de `movie_reviews`, com a coluna `curtidas` que o backend ainda não tem. */
+/** Linha de `movie_reviews`. */
 export type ReviewRow = {
   sk_movie_review_id: string
   sk_movie_id: string

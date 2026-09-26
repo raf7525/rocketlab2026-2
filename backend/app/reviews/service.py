@@ -33,6 +33,37 @@ async def get_summary(session: AsyncSession, sk_movie_id: str) -> DimReview | No
     return await repository.get_summary(session, sk_movie_id)
 
 
+async def like_review(
+    session: AsyncSession, sk_movie_id: str, sk_movie_review_id: str
+) -> MovieReview:
+    return await _change_likes(session, sk_movie_id, sk_movie_review_id, +1)
+
+
+async def unlike_review(
+    session: AsyncSession, sk_movie_id: str, sk_movie_review_id: str
+) -> MovieReview:
+    """Tira uma curtida; a contagem nunca fica abaixo de zero."""
+
+    return await _change_likes(session, sk_movie_id, sk_movie_review_id, -1)
+
+
+async def list_popular_reviews(session: AsyncSession, limit: int) -> list[MovieReview]:
+    return await repository.list_most_liked(session, limit)
+
+
+async def _change_likes(
+    session: AsyncSession, sk_movie_id: str, sk_movie_review_id: str, change: int
+) -> MovieReview:
+    await _ensure_movie_exists(session, sk_movie_id)
+    review = await repository.get_review(session, sk_movie_id, sk_movie_review_id)
+    if review is None:
+        raise NotFoundError("Avaliação não encontrada.")
+
+    review.curtidas = max(0, review.curtidas + change)
+    await session.commit()
+    return review
+
+
 async def _ensure_movie_exists(session: AsyncSession, sk_movie_id: str) -> None:
     if not await repository.movie_exists(session, sk_movie_id):
         raise NotFoundError("Filme não encontrado.")

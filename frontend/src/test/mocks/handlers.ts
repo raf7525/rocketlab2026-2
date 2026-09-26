@@ -1,9 +1,7 @@
 /**
  * Handlers do MSW que imitam a API do backend, seguindo as mesmas regras (validação, média
- * recalculada a partir das avaliações, 404 com "Filme não encontrado.").
- *
- * Também simulam o que o backend ainda NÃO tem: o catálogo (`GET /movies`), o detalhe do
- * filme, as curtidas e as reviews populares. O contrato está em `planejamento.md`.
+ * recalculada a partir das avaliações, 404 com "Filme não encontrado."). Ao mudar uma rota no
+ * backend (`backend/app/<domínio>/router.py`), mude aqui também.
  */
 import { delay, http, HttpResponse, type PathParams } from 'msw'
 

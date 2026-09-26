@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, StringConstraints, computed_field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, computed_field
 
 from app.shared.ratings import Score, score_to_stars
 
@@ -29,6 +29,7 @@ class MovieReviewRead(BaseModel):
     nota: float
     comentario: str
     created_at: datetime
+    curtidas: int
 
     @computed_field
     @property
@@ -36,17 +37,18 @@ class MovieReviewRead(BaseModel):
         return score_to_stars(self.nota)
 
 
-class MovieReviewSummary(BaseModel):
-    """Quantidade e média das avaliações de um filme (lido de `dim_reviews`)."""
+class ReviewedMovie(BaseModel):
+    """O suficiente do filme para mostrar a avaliação fora da página dele."""
 
     model_config = ConfigDict(from_attributes=True)
 
-    qtd_avaliacoes_usuarios: int = 0
-    nota_media_usuarios: float | None = None
+    sk_movie_id: str
+    titulo: str
+    ano_lancamento: int | None
+    url_poster: str | None
 
-    @computed_field
-    @property
-    def estrelas_media(self) -> float | None:
-        if self.nota_media_usuarios is None:
-            return None
-        return score_to_stars(self.nota_media_usuarios)
+
+class PopularReview(MovieReviewRead):
+    """Avaliação da lista de populares, com o filme avaliado."""
+
+    filme: ReviewedMovie = Field(validation_alias="movie")
