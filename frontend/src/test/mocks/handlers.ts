@@ -5,17 +5,26 @@
  */
 import { delay, http, HttpResponse, type PathParams } from 'msw'
 
-import type {
-  MovieCreate,
-  MovieDetail,
-  MovieSummary,
-  RatingSummary,
+import {
+  MOVIE_STATUSES,
+  type MovieCreate,
+  type MovieDetail,
+  type MovieSummary,
+  type RatingSummary,
 } from '../../features/movies/types/movie'
 import type { MovieReview, PopularReview } from '../../features/reviews/types/review'
 import { scoreToStars } from '../../shared/lib/ratings'
 import { db, type MovieRow, type ReviewRow } from './db'
 
 const API = '/api/v1'
+
+/** Mesmos limites de `app/posters/storage.py`. */
+const POSTER_MAX_BYTES = 5 * 1024 * 1024
+const POSTER_EXTENSIONS: Record<string, string> = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+}
 
 export const handlers = [
   http.get(`${API}/movies`, async ({ request }) => {
@@ -50,10 +59,10 @@ export const handlers = [
       titulo: data.titulo,
       data_lancamento: null,
       ano_lancamento: data.ano_lancamento,
-      duracao_minutos: null,
-      status_filme: null,
+      duracao_minutos: data.duracao_minutos ?? null,
+      status_filme: data.status_filme ?? null,
       sinopse: data.sinopse,
-      url_poster: null,
+      url_poster: data.url_poster ?? null,
       url_backdrop: null,
       generos: data.generos.map((name) => findGenre(name)!).sort(),
       diretores: [...data.diretores].sort(),
@@ -91,8 +100,14 @@ export const handlers = [
     movie.sinopse = data.sinopse
     movie.generos = data.generos.map((name) => findGenre(name)!).sort()
     movie.diretores = [...data.diretores].sort()
-    // Sem `elenco`, o backend mantém o atual; com ele (mesmo vazio), troca.
+    // Os opcionais que não vêm ficam como estão; vindo (mesmo nulos), são trocados.
     if (data.elenco) movie.elenco = [...data.elenco].sort()
+    if (data.duracao_minutos !== undefined) movie.duracao_minutos = data.duracao_minutos
+    if (data.status_filme !== undefined) movie.status_filme = data.status_filme
+    if (data.url_poster !== undefined) {
+      if (movie.url_poster !== data.url_poster) deletePoster(movie.url_poster)
+      movie.url_poster = data.url_poster
+    }
     return HttpResponse.json(toMovieDetail(movie))
   }),
 
@@ -101,8 +116,34 @@ export const handlers = [
     const movie = findMovie(params)
     if (!movie) return movieNotFound()
     db.movies = db.movies.filter((row) => row !== movie)
+    deletePoster(movie.url_poster)
     db.reviews = db.reviews.filter((review) => review.sk_movie_id !== movie.sk_movie_id)
     return new HttpResponse(null, { status: 204 })
+  }),
+
+  http.post(`${API}/posters`, async ({ request }) => {
+    await delay()
+    // O corpo é a própria imagem. O backend confere os primeiros bytes; aqui, o tipo informado
+    // basta.
+    const type = request.headers.get('Content-Type') ?? ''
+    const extension = POSTER_EXTENSIONS[type]
+    if (!extension) {
+      return HttpResponse.json({ detail: 'Envie uma imagem JPG, PNG ou WebP.' }, { status: 422 })
+    }
+    const file = new Blob([await request.arrayBuffer()], { type })
+    if (file.size > POSTER_MAX_BYTES) {
+      return HttpResponse.json({ detail: 'A imagem pode ter até 5 MB.' }, { status: 422 })
+    }
+    const name = `${crypto.randomUUID().replaceAll('-', '')}${extension}`
+    db.posters.set(name, file)
+    return HttpResponse.json({ url: `${API}/posters/${name}` }, { status: 201 })
+  }),
+
+  // No `dev:mock`, o <img> do pôster enviado também passa pelo MSW.
+  http.get(`${API}/posters/:name`, ({ params }) => {
+    const file = db.posters.get(String(params.name))
+    if (!file) return HttpResponse.json({ detail: 'Imagem não encontrada.' }, { status: 404 })
+    return new HttpResponse(file, { headers: { 'Content-Type': file.type } })
   }),
 
   http.get(`${API}/genres`, async () => {
@@ -173,12 +214,15 @@ function matchesFilters(params: URLSearchParams): (movie: MovieRow) => boolean {
   const genero = value('genero')
   const diretor = value('diretor')
   const ator = value('ator')
+  // O status é comparado com a grafia exata, como no backend.
+  const status = params.get('status') || null
   const someContains = (names: string[], part: string) =>
     names.some((name) => name.toLowerCase().includes(part))
 
   return (movie) =>
     (!busca || movie.titulo.toLowerCase().includes(busca)) &&
     (!genero || movie.generos.some((name) => name.toLowerCase() === genero)) &&
+    (!status || movie.status_filme === status) &&
     (!diretor || someContains(movie.diretores, diretor)) &&
     (!ator || someContains(movie.elenco, ator))
 }
@@ -220,13 +264,22 @@ function parseReview(body: unknown): Pick<ReviewRow, 'nome' | 'nota' | 'comentar
  * diretor e um gênero (repetidos contam uma vez), sinopse e elenco opcionais. O elenco fica
  * `undefined` quando não vem, para a edição saber que deve mantê-lo.
  */
+type OptionalFields = 'elenco' | 'duracao_minutos' | 'status_filme' | 'url_poster'
+
 function parseMovie(
   body: unknown,
-): (Omit<MovieCreate, 'elenco'> & { elenco: string[] | undefined }) | null {
-  const { titulo, ano_lancamento, diretores, generos, sinopse, elenco } = (body ?? {}) as Record<
-    string,
-    unknown
-  >
+): (Omit<MovieCreate, OptionalFields> & Partial<Pick<MovieCreate, OptionalFields>>) | null {
+  const {
+    titulo,
+    ano_lancamento,
+    diretores,
+    generos,
+    sinopse,
+    elenco,
+    duracao_minutos,
+    status_filme,
+    url_poster,
+  } = (body ?? {}) as Record<string, unknown>
   if (typeof titulo !== 'string' || !titulo.trim() || titulo.trim().length > 500) return null
   if (typeof ano_lancamento !== 'number' || !Number.isInteger(ano_lancamento)) return null
   if (ano_lancamento < 1888 || ano_lancamento > 2100) return null
@@ -236,6 +289,17 @@ function parseMovie(
   if (!directorNames || !genreNames) return null
   const castNames = elenco === undefined ? undefined : parseNames(elenco, { allowEmpty: true })
   if (castNames === null) return null
+  if (
+    duracao_minutos != null &&
+    (typeof duracao_minutos !== 'number' ||
+      !Number.isInteger(duracao_minutos) ||
+      duracao_minutos < 1 ||
+      duracao_minutos > 20000)
+  ) {
+    return null
+  }
+  if (status_filme != null && !MOVIE_STATUSES.includes(status_filme as never)) return null
+  if (url_poster != null && typeof url_poster !== 'string') return null
   return {
     titulo: titulo.trim(),
     ano_lancamento,
@@ -243,6 +307,9 @@ function parseMovie(
     generos: genreNames,
     sinopse: sinopse?.trim() || null,
     elenco: castNames,
+    duracao_minutos: duracao_minutos as MovieCreate['duracao_minutos'] | undefined,
+    status_filme: status_filme as MovieCreate['status_filme'] | undefined,
+    url_poster: url_poster as string | null | undefined,
   }
 }
 
@@ -256,6 +323,12 @@ function parseNames(value: unknown, { allowEmpty = false } = {}): string[] | nul
     if (!unique.has(name.toLowerCase())) unique.set(name.toLowerCase(), name)
   }
   return [...unique.values()]
+}
+
+/** Como no backend: apaga a imagem enviada que o filme deixou de usar. */
+function deletePoster(url: string | null): void {
+  const prefix = `${API}/posters/`
+  if (url?.startsWith(prefix)) db.posters.delete(url.slice(prefix.length))
 }
 
 function changeLikes(params: PathParams, change: 1 | -1) {

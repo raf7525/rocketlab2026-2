@@ -38,13 +38,20 @@ type Db = {
   reviews: ReviewRow[]
   /** Os nomes em `dim_genres`: os únicos gêneros que um filme cadastrado pode ter. */
   genres: string[]
+  /** Imagens enviadas por `POST /posters`, pelo nome do arquivo (a pasta `media/posters`). */
+  posters: Map<string, Blob>
 }
 
-export const db: Db = { movies: [], reviews: [], genres: [] }
+export const db: Db = { movies: [], reviews: [], genres: [], posters: new Map() }
 
 /** Troca todo o conteúdo do banco; sem argumentos, deixa-o vazio. */
-export function seedDb({ movies = [], reviews = [], genres = [] }: Partial<Db> = {}): void {
+export function seedDb({
+  movies = [],
+  reviews = [],
+  genres = [],
+}: Partial<Omit<Db, 'posters'>> = {}): void {
   db.movies = structuredClone(movies)
   db.reviews = structuredClone(reviews)
   db.genres = [...genres]
+  db.posters = new Map()
 }

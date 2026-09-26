@@ -3,8 +3,9 @@ import { Link } from 'react-router'
 
 import { cx } from '../../../shared/lib/cx'
 import { useGenres } from '../hooks/useMovies'
-import type { MovieCreate } from '../types/movie'
+import { MOVIE_STATUSES, type MovieCreate, type MovieStatus, type PosterChange } from '../types/movie'
 import styles from './MovieForm.module.css'
+import { PosterInput } from './PosterInput'
 
 /** Mesmos limites do `MovieCreate` no backend. */
 const MAX_TITLE = 500
@@ -12,9 +13,18 @@ const MAX_NAME = 255
 const MAX_SYNOPSIS = 4000
 const MIN_YEAR = 1888
 const MAX_YEAR = 2100
+const MAX_DURATION = 20000
 
 /** Campos que podem ter erro, na ordem da tela (o primeiro inválido recebe o foco). */
-const FIELDS = ['titulo', 'ano_lancamento', 'diretores', 'elenco', 'generos', 'assistido'] as const
+const FIELDS = [
+  'titulo',
+  'ano_lancamento',
+  'diretores',
+  'duracao_minutos',
+  'elenco',
+  'generos',
+  'assistido',
+] as const
 type Field = (typeof FIELDS)[number]
 type Errors = Partial<Record<Field, string>>
 
@@ -23,10 +33,12 @@ const SUBMIT_LABELS = {
   edit: { idle: 'Salvar alterações', pending: 'Salvando…' },
 }
 
-/** O que a pessoa respondeu além dos dados do filme (não vai para a API). */
+/** O que vem do formulário além dos dados do filme. */
 export type MovieFormExtras = {
-  /** Se já assistiu ao filme, ela segue para a avaliação depois do cadastro. */
+  /** Se já assistiu ao filme, ela segue para a avaliação depois do cadastro (não vai para a API). */
   assistido: boolean
+  /** A imagem escolhida é enviada antes do filme (ver `useCreateMovie`). */
+  poster: PosterChange
 }
 
 type Props = {
@@ -47,14 +59,14 @@ type Props = {
       mode: 'edit'
       /** Filmes do CSV podem não ter ano; o campo começa vazio e precisa ser preenchido. */
       initial: Omit<MovieCreate, 'ano_lancamento'> & { ano_lancamento: number | null }
-      onSubmit: (data: MovieCreate) => void
+      onSubmit: (data: MovieCreate, extras: Pick<MovieFormExtras, 'poster'>) => void
       onCancel: () => void
     }
 )
 
 /**
- * Título, ano, direção, gêneros (da lista do catálogo) e sinopse de um filme. No cadastro,
- * também pergunta se a pessoa já assistiu a ele.
+ * Título, ano, direção, duração, status, elenco, gêneros (da lista do catálogo), sinopse e pôster
+ * de um filme. No cadastro, também pergunta se a pessoa já assistiu a ele.
  */
 export function MovieForm(props: Props) {
   const { labelledBy, pending, error } = props
@@ -65,6 +77,10 @@ export function MovieForm(props: Props) {
   const [ano, setAno] = useState(initial?.ano_lancamento?.toString() ?? '')
   const [diretores, setDiretores] = useState(initial?.diretores.join(', ') ?? '')
   const [elenco, setElenco] = useState(initial?.elenco.join(', ') ?? '')
+  const [duracao, setDuracao] = useState(initial?.duracao_minutos?.toString() ?? '')
+  // Filme novo costuma já ter sido lançado; na edição, vale o status atual (ou nenhum).
+  const [status, setStatus] = useState<string>(initial ? (initial.status_filme ?? '') : 'Lançado')
+  const [poster, setPoster] = useState<PosterChange>(undefined)
   const [generos, setGeneros] = useState<string[]>(initial?.generos ?? [])
   const [sinopse, setSinopse] = useState(initial?.sinopse ?? '')
   const [assistido, setAssistido] = useState<boolean | null>(null)
@@ -86,7 +102,7 @@ export function MovieForm(props: Props) {
     event.preventDefault()
     if (pending) return
 
-    const values = { titulo, ano, diretores, elenco, generos, sinopse }
+    const values = { titulo, ano, diretores, duracao, status, elenco, generos, sinopse }
     const result = parseMovie(values, askWatched, assistido)
     if (!result.ok) {
       setErrors(result.errors)
@@ -99,8 +115,11 @@ export function MovieForm(props: Props) {
     }
 
     setErrors({})
-    if (props.mode === 'create') props.onSubmit(result.data, { assistido: assistido === true })
-    else props.onSubmit(result.data)
+    if (props.mode === 'create') {
+      props.onSubmit(result.data, { assistido: assistido === true, poster })
+    } else {
+      props.onSubmit(result.data, { poster })
+    }
   }
 
   const errorId = (field: Field) => `${id}-${field}-erro`
@@ -180,6 +199,49 @@ export function MovieForm(props: Props) {
         </div>
       </div>
 
+      <div className={styles.rowCompact}>
+        <div data-field="duracao_minutos" className={styles.field}>
+          <label htmlFor={`${id}-duracao`} className={styles.label}>
+            Duração (min) <span className={styles.optional}>(opcional)</span>
+          </label>
+          <input
+            id={`${id}-duracao`}
+            value={duracao}
+            onChange={(event) => {
+              setDuracao(event.target.value)
+              clearError('duracao_minutos')
+            }}
+            inputMode="numeric"
+            maxLength={5}
+            placeholder="Ex.: 136"
+            autoComplete="off"
+            aria-invalid={Boolean(errors.duracao_minutos)}
+            aria-describedby={describedBy('duracao_minutos')}
+            className={styles.input}
+          />
+          <FieldError id={errorId('duracao_minutos')} message={errors.duracao_minutos} />
+        </div>
+
+        <div className={styles.field}>
+          <label htmlFor={`${id}-status`} className={styles.label}>
+            Status
+          </label>
+          <select
+            id={`${id}-status`}
+            value={status}
+            onChange={(event) => setStatus(event.target.value)}
+            className={styles.select}
+          >
+            <option value="">Não informado</option>
+            {MOVIE_STATUSES.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <div data-field="elenco" className={styles.field}>
         <label htmlFor={`${id}-elenco`} className={styles.label}>
           Elenco <span className={styles.optional}>(opcional)</span>
@@ -230,6 +292,12 @@ export function MovieForm(props: Props) {
           {sinopse.length}/{MAX_SYNOPSIS}
         </span>
       </div>
+
+      <PosterInput
+        currentUrl={initial?.url_poster ?? null}
+        value={poster}
+        onChange={setPoster}
+      />
 
       {askWatched && (
         <fieldset
@@ -345,6 +413,8 @@ type Values = {
   titulo: string
   ano: string
   diretores: string
+  duracao: string
+  status: string
   elenco: string
   generos: string[]
   sinopse: string
@@ -358,6 +428,8 @@ function parseMovie(values: Values, askWatched: boolean, assistido: boolean | nu
   const year = Number(ano)
   const diretores = splitNames(values.diretores)
   const elenco = splitNames(values.elenco)
+  const duracao = values.duracao.trim()
+  const minutes = Number(duracao)
   const errors: Errors = {}
 
   if (!titulo) errors.titulo = 'Informe o título.'
@@ -368,6 +440,9 @@ function parseMovie(values: Values, askWatched: boolean, assistido: boolean | nu
   if (diretores.length === 0) errors.diretores = 'Informe quem dirigiu o filme.'
   else if (diretores.some((name) => name.length > MAX_NAME)) {
     errors.diretores = `Cada nome pode ter até ${MAX_NAME} caracteres.`
+  }
+  if (duracao && (!/^\d+$/.test(duracao) || minutes < 1 || minutes > MAX_DURATION)) {
+    errors.duracao_minutos = `A duração precisa estar entre 1 e ${MAX_DURATION} minutos.`
   }
   if (elenco.some((name) => name.length > MAX_NAME)) {
     errors.elenco = `Cada nome pode ter até ${MAX_NAME} caracteres.`
@@ -385,6 +460,8 @@ function parseMovie(values: Values, askWatched: boolean, assistido: boolean | nu
       generos: values.generos,
       sinopse: values.sinopse.trim() || null,
       elenco,
+      duracao_minutos: duracao ? minutes : null,
+      status_filme: (values.status || null) as MovieStatus | null,
     },
   }
 }

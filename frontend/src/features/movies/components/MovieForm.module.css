@@ -32,6 +32,19 @@
   }
 }
 
+/* Duração e status: dois campos curtos lado a lado. */
+.rowCompact {
+  display: grid;
+  gap: 22px;
+}
+
+@media (min-width: 560px) {
+  .rowCompact {
+    grid-template-columns: 150px 220px;
+    gap: 20px;
+  }
+}
+
 .label {
   padding: 0;
   font-size: 13px;
@@ -57,6 +70,24 @@
   transition:
     background-color 120ms ease-out,
     color 120ms ease-out;
+}
+
+.select {
+  width: 100%;
+  height: 38px;
+  padding: 4px 10px 2px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-strong);
+  box-shadow: inset 0 1px 0 rgb(0 0 0 / 20%);
+  cursor: pointer;
+}
+
+.select:focus {
+  outline: none;
+  background: #d8e0e8;
+  color: #14181c;
 }
 
 .input:focus,
@@ -237,4 +268,64 @@
 .error {
   font-size: 13px;
   color: var(--danger);
+}
+
+/* Pôster: prévia no formato 2:3 ao lado dos botões. */
+.posterRow {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.posterPreview {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 96px;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px rgb(221 238 255 / 12%);
+}
+
+.posterPreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.posterEmpty {
+  padding: 8px;
+  font-size: 11px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.posterActions {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+
+.posterButton {
+  padding: 8px 14px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 120ms ease-out;
+}
+
+.posterButton:hover {
+  background: var(--surface-hover);
+}
+
+.posterButton:has(:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }

@@ -1,3 +1,7 @@
+/** Os únicos valores de `status_filme` que aparecem nos CSVs (e que a API aceita). */
+export const MOVIE_STATUSES = ['Lançado', 'Pós-Produção', 'Em Produção', 'Planejado'] as const
+export type MovieStatus = (typeof MOVIE_STATUSES)[number]
+
 /** Quantidade e média das avaliações do filme (o resumo guardado em `dim_reviews`). */
 export type RatingSummary = {
   qtd_avaliacoes_usuarios: number
@@ -36,6 +40,7 @@ export type MovieFilters = {
   genero?: string
   diretor?: string
   ator?: string
+  status?: string
 }
 
 /**
@@ -51,4 +56,18 @@ export type MovieCreate = {
   sinopse: string | null
   /** Atores e atrizes; opcional (pode ir vazio). Na edição, troca o elenco do filme. */
   elenco: string[]
+  /** Em minutos, de 1 a 20000; `null` quando desconhecida. */
+  duracao_minutos: number | null
+  status_filme: MovieStatus | null
+  /**
+   * Endereço devolvido por `POST /posters` (ou um link de imagem). Na edição, ausente mantém o
+   * pôster atual e `null` o remove.
+   */
+  url_poster?: string | null
 }
+
+/**
+ * O que fazer com o pôster ao salvar: um arquivo novo é enviado antes do filme, `null` remove a
+ * imagem e `undefined` mantém a atual.
+ */
+export type PosterChange = File | null | undefined

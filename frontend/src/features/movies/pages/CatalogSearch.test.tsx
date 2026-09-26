@@ -73,6 +73,23 @@ describe('Busca no catálogo', () => {
     expect(router.state.location.search).toBe('?genero=Drama')
   })
 
+  it('filtra por status assim que ele é escolhido', async () => {
+    seedDb({
+      genres: GENRES,
+      movies: [
+        makeMovieRow({ titulo: 'Oppenheimer', status_filme: 'Lançado' }),
+        makeMovieRow({ titulo: 'The Odyssey', status_filme: 'Planejado' }),
+      ],
+    })
+    const { user, router } = renderApp('/')
+
+    await user.selectOptions(await screen.findByRole('combobox', { name: 'Status' }), 'Planejado')
+
+    expect(await within(catalog()).findByText('1 filme')).toBeInTheDocument()
+    expect(await shownTitles()).toEqual(['The Odyssey'])
+    expect(router.state.location.search).toBe('?status=Planejado')
+  })
+
   it('combina direção e elenco', async () => {
     seedCatalog()
     const { user } = renderApp('/')

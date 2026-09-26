@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router'
 
 import { useGenres } from '../hooks/useMovies'
 import { catalogUrl, hasFilters } from '../lib/catalogSearch'
-import type { MovieFilters } from '../types/movie'
+import { MOVIE_STATUSES, type MovieFilters } from '../types/movie'
 import styles from './CatalogSearch.module.css'
 
 /** Mesmo limite da busca no backend (`MovieFilters`). */
@@ -19,6 +19,7 @@ export function CatalogSearch({ filters }: { filters: MovieFilters }) {
   const genres = useGenres()
   // Controlado: os gêneros chegam depois do primeiro render, e o escolhido precisa aparecer.
   const [genero, setGenero] = useState(filters.genero ?? '')
+  const [status, setStatus] = useState(filters.status ?? '')
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -31,6 +32,7 @@ export function CatalogSearch({ filters }: { filters: MovieFilters }) {
         genero: text('genero'),
         diretor: text('diretor'),
         ator: text('ator'),
+        status: text('status'),
       }),
     )
   }
@@ -114,6 +116,29 @@ export function CatalogSearch({ filters }: { filters: MovieFilters }) {
             autoComplete="off"
             className={styles.input}
           />
+        </div>
+
+        <div className={styles.field}>
+          <label htmlFor={`${id}-status`} className={styles.label}>
+            Status
+          </label>
+          <select
+            id={`${id}-status`}
+            name="status"
+            value={status}
+            onChange={(event) => {
+              setStatus(event.target.value)
+              event.target.form?.requestSubmit()
+            }}
+            className={styles.select}
+          >
+            <option value="">Todos os status</option>
+            {MOVIE_STATUSES.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
         </div>
 
         {hasFilters(filters) && (

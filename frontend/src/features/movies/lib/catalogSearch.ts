@@ -1,7 +1,13 @@
 import type { MovieFilters } from '../types/movie'
 
 /** Parâmetros do endereço do catálogo, na ordem em que aparecem (`/?busca=…&pagina=2`). */
-const FILTER_PARAMS: readonly (keyof MovieFilters)[] = ['busca', 'genero', 'diretor', 'ator']
+const FILTER_PARAMS: readonly (keyof MovieFilters)[] = [
+  'busca',
+  'genero',
+  'diretor',
+  'ator',
+  'status',
+]
 
 /** Busca e filtros guardados no endereço do catálogo; os vazios ficam de fora. */
 export function readFilters(params: URLSearchParams): MovieFilters {

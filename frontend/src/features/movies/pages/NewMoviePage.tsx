@@ -27,8 +27,8 @@ export function NewMoviePage() {
         labelledBy={headingId}
         pending={createMovie.isPending}
         error={createMovie.error}
-        onSubmit={(data, { assistido }) =>
-          createMovie.mutate(data, {
+        onSubmit={(data, { assistido, poster }) =>
+          createMovie.mutate({ data, poster }, {
             onSuccess: (movie) => {
               if (!assistido) return backToCatalog()
               // O replace tira o formulário do histórico; o state leva adiante o caminho de volta.

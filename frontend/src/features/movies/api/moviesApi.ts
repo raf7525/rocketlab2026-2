@@ -29,6 +29,11 @@ export function deleteMovie(movieId: string): Promise<void> {
   return api.delete(`/movies/${encodeURIComponent(movieId)}`)
 }
 
+/** Envia a imagem do pôster (JPG, PNG ou WebP, até 5 MB) e devolve o endereço dela. */
+export function uploadPoster(file: File): Promise<{ url: string }> {
+  return api.upload('/posters', file)
+}
+
 /** Os gêneros que um filme pode ter, em ordem alfabética. */
 export function fetchGenres(): Promise<string[]> {
   return api.get('/genres')

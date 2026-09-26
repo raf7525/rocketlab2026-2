@@ -7,8 +7,19 @@ import {
   fetchMovie,
   fetchMovies,
   updateMovie,
+  uploadPoster,
 } from '../api/moviesApi'
-import type { MovieCreate, MovieFilters } from '../types/movie'
+import type { MovieCreate, MovieFilters, PosterChange } from '../types/movie'
+
+/** Dados do formulário mais o que fazer com o pôster. */
+export type MovieSave = { data: MovieCreate; poster: PosterChange }
+
+/** Envia o pôster novo (se houver) e devolve os dados do filme com o `url_poster` certo. */
+async function withPoster({ data, poster }: MovieSave): Promise<MovieCreate> {
+  if (poster instanceof File) return { ...data, url_poster: (await uploadPoster(poster)).url }
+  if (poster === null) return { ...data, url_poster: null }
+  return data
+}
 
 export const movieKeys = {
   all: ['movies'] as const,
@@ -52,7 +63,8 @@ export function useGenres() {
 export function useCreateMovie() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: createMovie,
+    // A imagem vai antes: se ela for recusada, o filme ainda não foi cadastrado.
+    mutationFn: async (save: MovieSave) => createMovie(await withPoster(save)),
     // A resposta já é o detalhe do filme novo; as páginas do catálogo ganharam um filme.
     onSuccess: (movie) => {
       queryClient.setQueryData(movieKeys.detail(movie.sk_movie_id), movie)
@@ -64,7 +76,7 @@ export function useCreateMovie() {
 export function useUpdateMovie(movieId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: MovieCreate) => updateMovie(movieId, data),
+    mutationFn: async (save: MovieSave) => updateMovie(movieId, await withPoster(save)),
     // O detalhe já vem na resposta; título e gêneros também aparecem no catálogo e nas reviews,
     // que são atualizados em segundo plano (salvar não espera por eles).
     onSuccess: (movie) => {

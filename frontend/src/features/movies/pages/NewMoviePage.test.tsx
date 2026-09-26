@@ -101,6 +101,90 @@ describe('NewMoviePage', () => {
     ])
   })
 
+  it('cadastra duração, status e pôster', async () => {
+    const { user } = setup()
+    const poster = new File(['png'], 'matrix.png', { type: 'image/png' })
+
+    await fillRequiredFields(user)
+    await user.type(screen.getByRole('textbox', { name: /Duração/ }), '136')
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Status' }), 'Pós-Produção')
+    await user.upload(screen.getByLabelText(/Pôster/), poster)
+    expect(screen.getByRole('img', { name: 'Prévia do pôster' })).toHaveAttribute(
+      'src',
+      expect.stringMatching(/^blob:/),
+    )
+    await answerWatched(user, 'Ainda não')
+    await submit(user)
+
+    await screen.findByRole('region', { name: 'Catálogo' })
+    expect(db.movies).toEqual([
+      expect.objectContaining({
+        titulo: 'Matrix',
+        duracao_minutos: 136,
+        status_filme: 'Pós-Produção',
+        url_poster: expect.stringMatching(/^\/api\/v1\/posters\/.+\.png$/),
+      }),
+    ])
+  })
+
+  it('duração e pôster são opcionais, e o status começa em Lançado', async () => {
+    const { user } = setup()
+
+    expect(screen.getByRole('combobox', { name: 'Status' })).toHaveValue('Lançado')
+    await fillRequiredFields(user)
+    await answerWatched(user, 'Ainda não')
+    await submit(user)
+
+    await screen.findByRole('region', { name: 'Catálogo' })
+    expect(db.movies).toEqual([
+      expect.objectContaining({ duracao_minutos: null, status_filme: 'Lançado', url_poster: null }),
+    ])
+  })
+
+  it('recusa uma duração fora do intervalo', async () => {
+    const { user } = setup()
+    await fillRequiredFields(user)
+    await answerWatched(user, 'Ainda não')
+
+    await user.type(screen.getByRole('textbox', { name: /Duração/ }), '0')
+    await submit(user)
+
+    expect(screen.getByText('A duração precisa estar entre 1 e 20000 minutos.')).toBeInTheDocument()
+    expect(db.movies).toHaveLength(0)
+  })
+
+  it('recusa um pôster com mais de 5 MB antes de enviar', async () => {
+    const { user } = setup()
+    const big = new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'grande.png', {
+      type: 'image/png',
+    })
+
+    await user.upload(screen.getByLabelText(/Pôster/), big)
+
+    expect(screen.getByText('A imagem pode ter até 5 MB.')).toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: 'Prévia do pôster' })).not.toBeInTheDocument()
+  })
+
+  it('mostra o erro do envio do pôster sem cadastrar o filme', async () => {
+    server.use(
+      http.post('/api/v1/posters', () =>
+        HttpResponse.json({ detail: 'Envie uma imagem JPG, PNG ou WebP.' }, { status: 422 }),
+      ),
+    )
+    const { user } = setup()
+
+    await fillRequiredFields(user)
+    await user.upload(
+      screen.getByLabelText(/Pôster/),
+      new File(['x'], 'p.png', { type: 'image/png' }),
+    )
+    await answerWatched(user, 'Ainda não')
+    await submit(user)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Envie uma imagem JPG, PNG ou WebP.')
+    expect(db.movies).toHaveLength(0)
+  })
+
   it('o elenco é opcional', async () => {
     const { user } = setup()
 

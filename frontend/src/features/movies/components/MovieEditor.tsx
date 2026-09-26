@@ -3,7 +3,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { SectionHeading } from '../../../shared/components/SectionHeading'
 import { pluralize } from '../../../shared/lib/format'
 import { useDeleteMovie, useUpdateMovie } from '../hooks/useMovies'
-import type { MovieDetail } from '../types/movie'
+import type { MovieDetail, MovieStatus } from '../types/movie'
 import { MovieForm } from './MovieForm'
 import styles from './MovieEditor.module.css'
 
@@ -34,10 +34,14 @@ export function MovieEditor({ movie, onSaved, onCancel, onDeleted }: Props) {
           generos: movie.generos,
           sinopse: movie.sinopse,
           elenco: movie.elenco,
+          duracao_minutos: movie.duracao_minutos,
+          // A API só grava os quatro status dos CSVs.
+          status_filme: movie.status_filme as MovieStatus | null,
+          url_poster: movie.url_poster,
         }}
         pending={updateMovie.isPending}
         error={updateMovie.error}
-        onSubmit={(data) => updateMovie.mutate(data, { onSuccess: onSaved })}
+        onSubmit={(data, { poster }) => updateMovie.mutate({ data, poster }, { onSuccess: onSaved })}
         onCancel={onCancel}
       />
       <DeleteMovie movie={movie} onDeleted={onDeleted} />

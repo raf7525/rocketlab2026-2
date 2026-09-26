@@ -11,6 +11,9 @@ const GENRES = ['Action', 'Drama', 'Science Fiction']
 
 const movie = makeMovieRow({
   sk_movie_id: 'blue-beetle',
+  duracao_minutos: 128,
+  status_filme: 'Lançado',
+  url_poster: 'https://image.tmdb.org/t/p/w500/blue-beetle.jpg',
   titulo: 'Blue Beetle',
   ano_lancamento: 2023,
   generos: ['Action', 'Science Fiction'],
@@ -118,6 +121,68 @@ describe('Edição do filme', () => {
       'Xolo Maridueña',
     ])
     expect(db.movies[0].elenco).toEqual(['Bruna Marquezine', 'Xolo Maridueña'])
+  })
+
+  it('edita duração e status, e mantém o pôster que não foi mexido', async () => {
+    seedDb({ genres: GENRES, movies: [movie] })
+    const { user } = renderApp('/filmes/blue-beetle')
+    const form = await openEditing(user)
+    const duration = within(form).getByRole('textbox', { name: /Duração/ })
+    await within(form).findByRole('checkbox', { name: 'Action' })
+
+    expect(duration).toHaveValue('128')
+    expect(within(form).getByRole('img', { name: 'Prévia do pôster' })).toHaveAttribute(
+      'src',
+      'https://image.tmdb.org/t/p/w342/blue-beetle.jpg',
+    )
+    await user.clear(duration)
+    await user.type(duration, '127')
+    await user.selectOptions(within(form).getByRole('combobox', { name: 'Status' }), 'Planejado')
+    await user.click(within(form).getByRole('button', { name: 'Salvar alterações' }))
+
+    await screen.findByText('Alterações salvas.')
+    expect(screen.getByText('Planejado')).toBeInTheDocument()
+    expect(db.movies[0]).toEqual(
+      expect.objectContaining({
+        duracao_minutos: 127,
+        status_filme: 'Planejado',
+        url_poster: 'https://image.tmdb.org/t/p/w500/blue-beetle.jpg',
+      }),
+    )
+  })
+
+  it('troca o pôster por uma imagem enviada', async () => {
+    seedDb({ genres: GENRES, movies: [movie] })
+    const { user } = renderApp('/filmes/blue-beetle')
+    const form = await openEditing(user)
+    await within(form).findByRole('checkbox', { name: 'Action' })
+
+    await user.upload(
+      within(form).getByLabelText(/Pôster/),
+      new File(['png'], 'novo.png', { type: 'image/png' }),
+    )
+    await user.click(within(form).getByRole('button', { name: 'Salvar alterações' }))
+
+    await screen.findByText('Alterações salvas.')
+    expect(db.movies[0].url_poster).toMatch(/^\/api\/v1\/posters\/.+\.png$/)
+    expect(screen.getByRole('img', { name: 'Pôster de Blue Beetle' })).toHaveAttribute(
+      'src',
+      db.movies[0].url_poster,
+    )
+  })
+
+  it('remove o pôster', async () => {
+    seedDb({ genres: GENRES, movies: [movie] })
+    const { user } = renderApp('/filmes/blue-beetle')
+    const form = await openEditing(user)
+    await within(form).findByRole('checkbox', { name: 'Action' })
+
+    await user.click(within(form).getByRole('button', { name: 'Remover imagem' }))
+    expect(within(form).queryByRole('img', { name: 'Prévia do pôster' })).not.toBeInTheDocument()
+    await user.click(within(form).getByRole('button', { name: 'Salvar alterações' }))
+
+    await screen.findByText('Alterações salvas.')
+    expect(db.movies[0].url_poster).toBeNull()
   })
 
   it('cancelar descarta as mudanças', async () => {

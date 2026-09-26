@@ -29,14 +29,25 @@ export const api = {
   get: <T>(path: string) => request<T>('GET', path),
   post: <T>(path: string, body?: unknown) => request<T>('POST', path, body),
   put: <T>(path: string, body?: unknown) => request<T>('PUT', path, body),
+  /** Envia um arquivo como o corpo da requisição, com o tipo dele no Content-Type. */
+  upload: async <T>(path: string, file: File) =>
+    request<T>('POST', path, await file.arrayBuffer(), file.type),
   delete: <T>(path: string) => request<T>('DELETE', path),
 }
 
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+async function request<T>(
+  method: string,
+  path: string,
+  body?: unknown,
+  /** Tipo de um corpo binário (upload); sem ele, o corpo vai como JSON. */
+  contentType?: string,
+): Promise<T> {
+  const binary = body instanceof ArrayBuffer
   const response = await fetch(new URL(API_PREFIX + path, window.location.origin), {
     method,
-    headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    headers:
+      body === undefined ? undefined : { 'Content-Type': binary ? contentType! : 'application/json' },
+    body: body === undefined || binary ? (body as BodyInit | undefined) : JSON.stringify(body),
   })
   if (!response.ok) {
     throw new ApiError(response.status, await errorMessage(response))

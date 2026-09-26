@@ -9,6 +9,11 @@ import { server } from './mocks/server'
 // O jsdom não implementa scrollTo, usado pelo <ScrollRestoration> ao trocar de página.
 window.scrollTo = () => {}
 
+// Nem os endereços `blob:` que a prévia do pôster usa para mostrar o arquivo escolhido.
+let blobCount = 0
+URL.createObjectURL = () => `blob:teste/${++blobCount}`
+URL.revokeObjectURL = () => {}
+
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 
 // Cada teste começa com o banco vazio e cadastra só o que precisa.
