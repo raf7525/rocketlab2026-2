@@ -7,7 +7,8 @@ import { pluralize } from '../../../shared/lib/format'
 import { PopularReviews } from '../../reviews/components/PopularReviews'
 import { CATALOG_PAGE_SIZE } from '../api/moviesApi'
 import { CatalogSearch } from '../components/CatalogSearch'
-import { MovieCard } from '../components/MovieCard'
+import { MovieGrid } from '../components/MovieGrid'
+import gridStyles from '../components/MovieGrid.module.css'
 import { useMovies } from '../hooks/useMovies'
 import { catalogUrl, hasFilters, readFilters } from '../lib/catalogSearch'
 import styles from './CatalogPage.module.css'
@@ -62,13 +63,7 @@ export function CatalogPage() {
 
           {movies.data && movies.data.items.length > 0 && (
             <>
-              <ul role="list" aria-busy={movies.isPlaceholderData} className={styles.grid}>
-                {movies.data.items.map((movie) => (
-                  <li key={movie.sk_movie_id}>
-                    <MovieCard movie={movie} />
-                  </li>
-                ))}
-              </ul>
+              <MovieGrid movies={movies.data.items} busy={movies.isPlaceholderData} />
               <Pagination
                 page={movies.data.page}
                 pages={movies.data.pages}
@@ -95,7 +90,7 @@ function CatalogSkeleton() {
   return (
     <>
       <p className="visually-hidden">Carregando filmes…</p>
-      <ul aria-hidden="true" className={styles.grid}>
+      <ul aria-hidden="true" className={gridStyles.grid}>
         {Array.from({ length: CATALOG_PAGE_SIZE }, (_, index) => (
           <li key={index}>
             <div className={styles.skeletonPoster} />
