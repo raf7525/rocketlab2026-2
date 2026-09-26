@@ -148,6 +148,33 @@ describe('MovieDetailPage', () => {
     expect(db.reviews).toHaveLength(1)
   })
 
+  it('o botão de voltar leva para a página do catálogo de onde abriu o filme', async () => {
+    seedDb({
+      movies: [
+        ...Array.from({ length: CATALOG_PAGE_SIZE }, () => makeMovieRow()),
+        movie,
+      ],
+    })
+    const { user, router } = renderApp('/?pagina=2')
+
+    await user.click(await screen.findByRole('link', { name: 'Blue Beetle' }))
+    await user.click(await screen.findByRole('button', { name: 'Voltar ao catálogo' }))
+
+    expect(await screen.findByRole('region', { name: 'Catálogo' })).toBeInTheDocument()
+    expect(router.state.location.search).toBe('?pagina=2')
+    expect(db.reviews).toHaveLength(0)
+  })
+
+  it('aberto por link direto, o botão de voltar leva ao início do catálogo', async () => {
+    seedDb({ movies: [movie] })
+    const { user, router } = renderApp('/filmes/blue-beetle')
+
+    await user.click(await screen.findByRole('button', { name: 'Voltar ao catálogo' }))
+
+    expect(await screen.findByRole('region', { name: 'Catálogo' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/')
+  })
+
   it('avisa quando o filme não existe', async () => {
     renderApp('/filmes/nao-existe')
 

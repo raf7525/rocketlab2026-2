@@ -46,6 +46,10 @@ export function MovieDetailPage() {
       )}
 
       <div className={styles.content}>
+        <button type="button" onClick={backToCatalog} className={styles.back}>
+          <span aria-hidden="true">←</span> Voltar ao catálogo
+        </button>
+
         <aside className={styles.side}>
           <div className={styles.poster}>
             {data.url_poster && (

@@ -22,6 +22,39 @@
   padding: 150px 0 72px;
 }
 
+/* Sobre o fundo, no espaço vazio acima do pôster. */
+.back {
+  position: absolute;
+  top: 24px;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px 5px;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(20 24 28 / 70%);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease-out,
+    color 120ms ease-out;
+}
+
+.back:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+
+.back:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .side {
   display: grid;
   grid-template-columns: 110px minmax(0, 1fr);
