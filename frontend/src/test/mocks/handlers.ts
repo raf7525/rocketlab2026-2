@@ -5,7 +5,12 @@
  */
 import { delay, http, HttpResponse, type PathParams } from 'msw'
 
-import type { MovieDetail, MovieSummary, RatingSummary } from '../../features/movies/types/movie'
+import type {
+  MovieCreate,
+  MovieDetail,
+  MovieSummary,
+  RatingSummary,
+} from '../../features/movies/types/movie'
 import type { MovieReview, PopularReview } from '../../features/reviews/types/review'
 import { scoreToStars } from '../../shared/lib/ratings'
 import { db, type MovieRow, type ReviewRow } from './db'
@@ -28,10 +33,44 @@ export const handlers = [
     })
   }),
 
+  http.post(`${API}/movies`, async ({ request }) => {
+    await delay()
+    const data = parseMovie(await request.json())
+    if (!data) {
+      return HttpResponse.json({ detail: [{ msg: 'Filme inválido.' }] }, { status: 422 })
+    }
+    const unknown = data.generos.filter((name) => !findGenre(name))
+    if (unknown.length > 0) {
+      const label = unknown.length === 1 ? 'Gênero desconhecido' : 'Gêneros desconhecidos'
+      return HttpResponse.json({ detail: `${label}: ${unknown.join(', ')}.` }, { status: 422 })
+    }
+    const movie: MovieRow = {
+      sk_movie_id: crypto.randomUUID(),
+      titulo: data.titulo,
+      data_lancamento: null,
+      ano_lancamento: data.ano_lancamento,
+      duracao_minutos: null,
+      status_filme: null,
+      sinopse: data.sinopse,
+      url_poster: null,
+      url_backdrop: null,
+      generos: data.generos.map((name) => findGenre(name)!).sort(),
+      diretores: [...data.diretores].sort(),
+    }
+    // Sem popularidade, o filme novo vai para o fim do catálogo, como no backend.
+    db.movies.push(movie)
+    return HttpResponse.json(toMovieDetail(movie), { status: 201 })
+  }),
+
   http.get(`${API}/movies/:movieId`, async ({ params }) => {
     await delay()
     const movie = findMovie(params)
     return movie ? HttpResponse.json(toMovieDetail(movie)) : movieNotFound()
+  }),
+
+  http.get(`${API}/genres`, async () => {
+    await delay()
+    return HttpResponse.json([...db.genres].sort())
   }),
 
   http.get(`${API}/movies/:movieId/reviews`, async ({ params }) => {
@@ -91,6 +130,11 @@ function findMovie(params: PathParams): MovieRow | undefined {
   return db.movies.find((movie) => movie.sk_movie_id === params.movieId)
 }
 
+/** O nome do gênero como está no banco, sem diferenciar maiúsculas. */
+function findGenre(name: string): string | undefined {
+  return db.genres.find((genre) => genre.toLowerCase() === name.toLowerCase())
+}
+
 function reviewsOf(movieId: string): ReviewRow[] {
   return db.reviews.filter((review) => review.sk_movie_id === movieId)
 }
@@ -112,6 +156,43 @@ function parseReview(body: unknown): Pick<ReviewRow, 'nome' | 'nota' | 'comentar
   if (!data.nome || data.nome.length > 120) return null
   if (!data.comentario || data.comentario.length > 4000) return null
   return data
+}
+
+/**
+ * Mesmas regras do `MovieCreate`: textos aparados, ano inteiro de 1888 a 2100, ao menos um
+ * diretor e um gênero (repetidos contam uma vez) e sinopse opcional.
+ */
+function parseMovie(body: unknown): MovieCreate | null {
+  const { titulo, ano_lancamento, diretores, generos, sinopse } = (body ?? {}) as Record<
+    string,
+    unknown
+  >
+  if (typeof titulo !== 'string' || !titulo.trim() || titulo.trim().length > 500) return null
+  if (typeof ano_lancamento !== 'number' || !Number.isInteger(ano_lancamento)) return null
+  if (ano_lancamento < 1888 || ano_lancamento > 2100) return null
+  if (sinopse != null && (typeof sinopse !== 'string' || sinopse.trim().length > 4000)) return null
+  const directorNames = parseNames(diretores)
+  const genreNames = parseNames(generos)
+  if (!directorNames || !genreNames) return null
+  return {
+    titulo: titulo.trim(),
+    ano_lancamento,
+    diretores: directorNames,
+    generos: genreNames,
+    sinopse: sinopse?.trim() || null,
+  }
+}
+
+/** Lista com ao menos um nome; cada um aparado, preenchido e com até 255 caracteres. */
+function parseNames(value: unknown): string[] | null {
+  if (!Array.isArray(value) || value.length === 0) return null
+  const names = value.map((name) => (typeof name === 'string' ? name.trim() : ''))
+  if (names.some((name) => !name || name.length > 255)) return null
+  const unique = new Map<string, string>()
+  for (const name of names) {
+    if (!unique.has(name.toLowerCase())) unique.set(name.toLowerCase(), name)
+  }
+  return [...unique.values()]
 }
 
 function changeLikes(params: PathParams, change: 1 | -1) {
@@ -158,6 +239,7 @@ function toMovieDetail(movie: MovieRow): MovieDetail {
     status_filme: movie.status_filme,
     sinopse: movie.sinopse,
     url_backdrop: movie.url_backdrop,
+    diretores: movie.diretores,
   }
 }
 

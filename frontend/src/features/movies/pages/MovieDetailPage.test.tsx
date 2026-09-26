@@ -36,6 +36,24 @@ describe('MovieDetailPage', () => {
     expect(screen.getByText('2 avaliações')).toBeInTheDocument()
   })
 
+  it('mostra quem dirigiu o filme', async () => {
+    seedDb({ movies: [{ ...movie, diretores: ['Lana Wachowski', 'Lilly Wachowski'] }] })
+    renderApp('/filmes/blue-beetle')
+
+    const names = await screen.findByText('Lana Wachowski e Lilly Wachowski')
+
+    expect(names.parentElement).toHaveTextContent(/^Dirigido por Lana Wachowski e Lilly Wachowski$/)
+  })
+
+  it('não mostra a direção quando o filme não tem diretor', async () => {
+    seedDb({ movies: [{ ...movie, diretores: [] }] })
+    renderApp('/filmes/blue-beetle')
+
+    await screen.findByRole('heading', { level: 1, name: 'Blue Beetle' })
+
+    expect(screen.queryByText(/Dirigido por/)).not.toBeInTheDocument()
+  })
+
   it('não mostra a duração quando ela é desconhecida (0 no CSV)', async () => {
     seedDb({ movies: [{ ...movie, duracao_minutos: 0 }] })
     renderApp('/filmes/blue-beetle')

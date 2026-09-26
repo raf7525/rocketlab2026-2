@@ -3,7 +3,10 @@
  * Guarda as linhas como nas tabelas; os handlers montam as respostas da API a partir delas.
  */
 
-/** Linha de `dim_movies` já com os nomes dos gêneros (via `bridge_movie_genre`). */
+/**
+ * Linha de `dim_movies` já com os nomes dos gêneros (via `bridge_movie_genre`) e dos diretores
+ * (via `bridge_movie_person` e `dim_people`).
+ */
 export type MovieRow = {
   sk_movie_id: string
   titulo: string
@@ -15,6 +18,7 @@ export type MovieRow = {
   url_poster: string | null
   url_backdrop: string | null
   generos: string[]
+  diretores: string[]
 }
 
 /** Linha de `movie_reviews`. */
@@ -28,13 +32,18 @@ export type ReviewRow = {
   curtidas: number
 }
 
-export const db: { movies: MovieRow[]; reviews: ReviewRow[] } = { movies: [], reviews: [] }
+type Db = {
+  movies: MovieRow[]
+  reviews: ReviewRow[]
+  /** Os nomes em `dim_genres`: os únicos gêneros que um filme cadastrado pode ter. */
+  genres: string[]
+}
+
+export const db: Db = { movies: [], reviews: [], genres: [] }
 
 /** Troca todo o conteúdo do banco; sem argumentos, deixa-o vazio. */
-export function seedDb({
-  movies = [],
-  reviews = [],
-}: { movies?: MovieRow[]; reviews?: ReviewRow[] } = {}): void {
+export function seedDb({ movies = [], reviews = [], genres = [] }: Partial<Db> = {}): void {
   db.movies = structuredClone(movies)
   db.reviews = structuredClone(reviews)
+  db.genres = [...genres]
 }

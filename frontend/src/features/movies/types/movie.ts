@@ -21,4 +21,16 @@ export type MovieDetail = MovieSummary & {
   status_filme: string | null
   sinopse: string | null
   url_backdrop: string | null
+  /** Nomes em ordem alfabética; vazio quando o CSV não traz o diretor. */
+  diretores: string[]
+}
+
+/** Dados para cadastrar um filme (`MovieCreate`): `POST /movies` devolve o `MovieDetail`. */
+export type MovieCreate = {
+  titulo: string
+  ano_lancamento: number
+  diretores: string[]
+  /** Nomes que precisam existir em `GET /genres`. */
+  generos: string[]
+  sinopse: string | null
 }

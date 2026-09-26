@@ -1,11 +1,43 @@
-"""Contratos de saída da API do catálogo de filmes."""
+"""Contratos de entrada e saída da API do catálogo de filmes."""
 
 from datetime import date
+from typing import Annotated
 
-from pydantic import model_validator
+from pydantic import BaseModel, Field, StringConstraints, field_validator, model_validator
 
-from app.movies.models import DimMovie
+from app.movies.models import DIRECTOR, DimMovie
 from app.shared.ratings import RatingSummary
+
+# Roundhay Garden Scene (1888) é o filme mais antigo que se conhece.
+MIN_YEAR = 1888
+MAX_YEAR = 2100
+
+Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=255)]
+
+
+class MovieCreate(BaseModel):
+    """Dados enviados para cadastrar um filme. Os gêneros precisam existir em `dim_genres`."""
+
+    titulo: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=500)]
+    ano_lancamento: Annotated[int, Field(ge=MIN_YEAR, le=MAX_YEAR, strict=True)]
+    diretores: Annotated[list[Name], Field(min_length=1)]
+    generos: Annotated[list[Name], Field(min_length=1)]
+    sinopse: Annotated[str, StringConstraints(strip_whitespace=True, max_length=4000)] | None = None
+
+    @field_validator("diretores", "generos")
+    @classmethod
+    def _count_each_name_once(cls, names: list[str]) -> list[str]:
+        """Tira os nomes repetidos (sem diferenciar maiúsculas), mantendo a ordem."""
+
+        unique: dict[str, str] = {}
+        for name in names:
+            unique.setdefault(name.casefold(), name)
+        return list(unique.values())
+
+    @field_validator("sinopse")
+    @classmethod
+    def _blank_synopsis_is_none(cls, sinopse: str | None) -> str | None:
+        return sinopse or None
 
 
 class MovieSummary(RatingSummary):
@@ -21,17 +53,25 @@ class MovieSummary(RatingSummary):
     @model_validator(mode="before")
     @classmethod
     def _flatten_movie(cls, data: object) -> object:
-        """Aceita um `DimMovie` com `genres` e `reviews_summary` já carregados."""
+        """Aceita um `DimMovie` com `genres` e `reviews_summary` já carregados.
+
+        O detalhe (`MovieDetail`) também precisa de `people`, para listar os diretores.
+        """
 
         if not isinstance(data, DimMovie):
             return data
         summary = data.reviews_summary
-        return {
+        flat = {
             **{name: getattr(data, name) for name in cls.model_fields if hasattr(DimMovie, name)},
             "generos": [genre.nome_genero for genre in data.genres],
             "qtd_avaliacoes_usuarios": summary.qtd_avaliacoes_usuarios if summary else 0,
             "nota_media_usuarios": summary.nota_media_usuarios if summary else None,
         }
+        if "diretores" in cls.model_fields:
+            flat["diretores"] = sorted(
+                person.nome_pessoa for person in data.people if person.tipo_pessoa == DIRECTOR
+            )
+        return flat
 
 
 class MovieDetail(MovieSummary):
@@ -41,3 +81,4 @@ class MovieDetail(MovieSummary):
     status_filme: str | None
     sinopse: str | None
     url_backdrop: str | None
+    diretores: list[str]

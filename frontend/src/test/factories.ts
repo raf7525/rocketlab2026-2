@@ -21,6 +21,7 @@ export function makeMovieRow(overrides: Partial<MovieRow> = {}): MovieRow {
     url_poster: `https://image.tmdb.org/t/p/w500/poster-${n}.jpg`,
     url_backdrop: `https://image.tmdb.org/t/p/w1280/fundo-${n}.jpg`,
     generos: ['Action'],
+    diretores: ['Angel Manuel Soto'],
     ...overrides,
   }
 }

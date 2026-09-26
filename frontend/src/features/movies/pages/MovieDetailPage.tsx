@@ -2,7 +2,7 @@ import { useParams } from 'react-router'
 
 import { PageMessage } from '../../../shared/components/PageMessage'
 import { ApiError } from '../../../shared/lib/api'
-import { formatDuration } from '../../../shared/lib/format'
+import { formatDuration, formatList } from '../../../shared/lib/format'
 import { tmdbImage } from '../../../shared/lib/images'
 import { MovieReviews } from '../../reviews/components/MovieReviews'
 import { ReviewForm } from '../../reviews/components/ReviewForm'
@@ -68,6 +68,12 @@ export function MovieDetailPage() {
                 <span className={styles.status}>{data.status_filme}</span>
               )}
             </p>
+            {data.diretores.length > 0 && (
+              <p className={styles.directors}>
+                Dirigido por{' '}
+                <span className={styles.directorNames}>{formatList(data.diretores)}</span>
+              </p>
+            )}
             <GenreList genres={data.generos} />
           </header>
 

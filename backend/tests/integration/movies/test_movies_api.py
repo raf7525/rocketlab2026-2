@@ -4,7 +4,7 @@ import httpx
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.movies.models import DimGenre, DimMovie, DimReview, FactMoviePerformance
+from app.movies.models import DimGenre, DimMovie, DimPerson, DimReview, FactMoviePerformance
 
 MOVIES_URL = "/api/v1/movies"
 UNKNOWN_MOVIE_ID = "0" * 64
@@ -117,7 +117,7 @@ async def test_invalid_page_returns_422(client: httpx.AsyncClient, params: dict[
 # GET /movies/{id}
 
 
-async def test_movie_detail_adds_release_date_status_synopsis_and_backdrop(
+async def test_movie_detail_adds_release_date_status_synopsis_backdrop_and_directors(
     client: httpx.AsyncClient, session: AsyncSession
 ) -> None:
     movie = DimMovie(
@@ -131,6 +131,10 @@ async def test_movie_detail_adds_release_date_status_synopsis_and_backdrop(
         url_poster="https://image.tmdb.org/t/p/w500/oppenheimer.jpg",
         url_backdrop="https://image.tmdb.org/t/p/w1280/fundo.jpg",
         genres=[DimGenre(nome_genero="Drama")],
+        people=[
+            DimPerson(nome_pessoa="Cillian Murphy", tipo_pessoa="Ator"),
+            DimPerson(nome_pessoa="Christopher Nolan", tipo_pessoa="Diretor"),
+        ],
     )
     await add_movies(session, movie)
 
@@ -151,6 +155,7 @@ async def test_movie_detail_adds_release_date_status_synopsis_and_backdrop(
         "status_filme": "Released",
         "sinopse": "A história de J. Robert Oppenheimer.",
         "url_backdrop": "https://image.tmdb.org/t/p/w1280/fundo.jpg",
+        "diretores": ["Christopher Nolan"],
     }
 
 

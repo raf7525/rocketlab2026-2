@@ -1,6 +1,7 @@
-// Gerado a partir dos CSVs (dim_movies, bridge_movie_genre, dim_genres, movies_reviews):
-// os 48 filmes mais populares com pôster. As curtidas NÃO existem no CSV; os valores
-// aqui são inventados (determinísticos) só para os dados de exemplo.
+// Gerado a partir dos CSVs (dim_movies, dim_genres, dim_people, bridge_movie_genre,
+// bridge_movie_person, movies_reviews): os 48 filmes mais populares com pôster, com gêneros e
+// diretores. As curtidas NÃO existem no CSV; os valores aqui são inventados (determinísticos)
+// só para os dados de exemplo.
 import type { MovieRow, ReviewRow } from './db'
 
 export const movieRows: MovieRow[] = [
@@ -18,6 +19,9 @@ export const movieRows: MovieRow[] = [
       "Action",
       "Adventure",
       "Drama"
+    ],
+    "diretores": [
+      "Neill Blomkamp"
     ]
   },
   {
@@ -34,6 +38,9 @@ export const movieRows: MovieRow[] = [
       "Action",
       "Horror",
       "Science Fiction"
+    ],
+    "diretores": [
+      "Ben Wheatley"
     ]
   },
   {
@@ -51,6 +58,9 @@ export const movieRows: MovieRow[] = [
       "Crime",
       "Mystery",
       "Thriller"
+    ],
+    "diretores": [
+      "Nimród Antal"
     ]
   },
   {
@@ -66,6 +76,10 @@ export const movieRows: MovieRow[] = [
     "generos": [
       "Horror",
       "Thriller"
+    ],
+    "diretores": [
+      "Danny Philippou",
+      "Michael Philippou"
     ]
   },
   {
@@ -84,6 +98,9 @@ export const movieRows: MovieRow[] = [
       "Family",
       "Fantasy",
       "Romance"
+    ],
+    "diretores": [
+      "Peter Sohn"
     ]
   },
   {
@@ -98,6 +115,9 @@ export const movieRows: MovieRow[] = [
     "url_backdrop": "https://image.tmdb.org/t/p/w1280/oghHR3X0hIcvs7xqyoFjA0GAZWn.jpg",
     "generos": [
       "Thriller"
+    ],
+    "diretores": [
+      "Óskar Thór Axelsson"
     ]
   },
   {
@@ -114,6 +134,9 @@ export const movieRows: MovieRow[] = [
       "Horror",
       "Science Fiction",
       "Thriller"
+    ],
+    "diretores": [
+      "Brian Duffield"
     ]
   },
   {
@@ -130,6 +153,9 @@ export const movieRows: MovieRow[] = [
       "Crime",
       "Horror",
       "Thriller"
+    ],
+    "diretores": [
+      "Kevin Greutert"
     ]
   },
   {
@@ -146,6 +172,10 @@ export const movieRows: MovieRow[] = [
       "Action",
       "Animation",
       "Comedy"
+    ],
+    "diretores": [
+      "Jeff Rowe",
+      "Kyler Spears"
     ]
   },
   {
@@ -162,6 +192,9 @@ export const movieRows: MovieRow[] = [
       "Action",
       "Adventure",
       "Thriller"
+    ],
+    "diretores": [
+      "Scott Waugh"
     ]
   },
   {
@@ -178,6 +211,9 @@ export const movieRows: MovieRow[] = [
       "Action",
       "Adventure",
       "Science Fiction"
+    ],
+    "diretores": [
+      "Andy Muschietti"
     ]
   },
   {
@@ -194,7 +230,8 @@ export const movieRows: MovieRow[] = [
       "Action",
       "Crime",
       "Thriller"
-    ]
+    ],
+    "diretores": []
   },
   {
     "sk_movie_id": "45e4b17aa16e19ce8ccb5263bccea9f0fdff94b650b6da583ffa2991d93ab27c",
@@ -210,6 +247,9 @@ export const movieRows: MovieRow[] = [
       "Horror",
       "Mystery",
       "Thriller"
+    ],
+    "diretores": [
+      "Corin Hardy"
     ]
   },
   {
@@ -227,6 +267,9 @@ export const movieRows: MovieRow[] = [
       "Family",
       "Fantasy",
       "Romance"
+    ],
+    "diretores": [
+      "Rob Marshall"
     ]
   },
   {
@@ -242,6 +285,9 @@ export const movieRows: MovieRow[] = [
     "generos": [
       "Action",
       "History"
+    ],
+    "diretores": [
+      "Greg Keith"
     ]
   },
   {
@@ -259,6 +305,10 @@ export const movieRows: MovieRow[] = [
       "Comedy",
       "Family",
       "Fantasy"
+    ],
+    "diretores": [
+      "Faryn Pearl",
+      "Kirk Demicco"
     ]
   },
   {
@@ -274,6 +324,9 @@ export const movieRows: MovieRow[] = [
     "generos": [
       "Horror",
       "Thriller"
+    ],
+    "diretores": [
+      "André Øvredal"
     ]
   },
   {
@@ -289,6 +342,9 @@ export const movieRows: MovieRow[] = [
     "generos": [
       "Action",
       "Thriller"
+    ],
+    "diretores": [
+      "Rajendra Reddy"
     ]
   },
   {
@@ -304,6 +360,9 @@ export const movieRows: MovieRow[] = [
     "generos": [
       "Action",
       "Crime"
+    ],
+    "diretores": [
+      "Dae-min Park"
     ]
   },
   {
@@ -320,7 +379,8 @@ export const movieRows: MovieRow[] = [
       "Action",
       "Animation",
       "Horror"
-    ]
+    ],
+    "diretores": []
   },
   {
     "sk_movie_id": "075ecd341cec10fdee945bc0ebc139dab8e5084935634db2268800b98e147354",
@@ -336,6 +396,9 @@ export const movieRows: MovieRow[] = [
       "Action",
       "Crime",
       "Thriller"
+    ],
+    "diretores": [
+      "Michael D. Olmos"
     ]
   },
   {
@@ -352,6 +415,9 @@ export const movieRows: MovieRow[] = [
       "Action",
       "Crime",
       "Thriller"
+    ],
+    "diretores": [
+      "Nicholas Maggio"
     ]
   },
   {
@@ -368,6 +434,10 @@ export const movieRows: MovieRow[] = [
       "Crime",
       "Horror",
       "Thriller"
+    ],
+    "diretores": [
+      "Matt Bettinelli-olpin",
+      "Tyler Gillett"
     ]
   },
   {
@@ -384,6 +454,9 @@ export const movieRows: MovieRow[] = [
       "Action",
       "Crime",
       "Thriller"
+    ],
+    "diretores": [
+      "Christian Sesma"
     ]
   },
   {
@@ -403,6 +476,10 @@ export const movieRows: MovieRow[] = [
       "Comedy",
       "Family",
       "Fantasy"
+    ],
+    "diretores": [
+      "Januel Mercado",
+      "Joel Crawford"
     ]
   },
   {
@@ -420,6 +497,9 @@ export const movieRows: MovieRow[] = [
       "Animation",
       "Comedy",
       "Family"
+    ],
+    "diretores": [
+      "Cal Brunker"
     ]
   },
   {
@@ -440,6 +520,9 @@ export const movieRows: MovieRow[] = [
       "Fantasy",
       "Music",
       "Romance"
+    ],
+    "diretores": [
+      "Jeremy Zag"
     ]
   },
   {
@@ -454,6 +537,9 @@ export const movieRows: MovieRow[] = [
     "url_backdrop": "https://image.tmdb.org/t/p/w1280/nYDPmxvl0if5vHBBp7pDYGkTFc7.jpg",
     "generos": [
       "Horror"
+    ],
+    "diretores": [
+      "Samuel Bodin"
     ]
   },
   {
@@ -468,6 +554,9 @@ export const movieRows: MovieRow[] = [
     "url_backdrop": "https://image.tmdb.org/t/p/w1280/r9S8NeS9iTQalegyHiYmkA1byQX.jpg",
     "generos": [
       "Romance"
+    ],
+    "diretores": [
+      "Linnet Zurbano"
     ]
   },
   {
@@ -484,6 +573,9 @@ export const movieRows: MovieRow[] = [
       "Crime",
       "Horror",
       "Mystery"
+    ],
+    "diretores": [
+      "Darren Lynn Bousman"
     ]
   },
   {
@@ -498,6 +590,9 @@ export const movieRows: MovieRow[] = [
     "url_backdrop": "https://image.tmdb.org/t/p/w1280/holtzVB17aoqCJlOiAXhKkCRhqj.jpg",
     "generos": [
       "Horror"
+    ],
+    "diretores": [
+      "Trey Murphy"
     ]
   },
   {
@@ -514,6 +609,9 @@ export const movieRows: MovieRow[] = [
       "Comedy",
       "Fantasy",
       "Horror"
+    ],
+    "diretores": [
+      "Pablo Larraín"
     ]
   },
   {
@@ -530,6 +628,9 @@ export const movieRows: MovieRow[] = [
       "Action",
       "Adventure",
       "Fantasy"
+    ],
+    "diretores": [
+      "Tomasz Bagiński"
     ]
   },
   {
@@ -544,6 +645,9 @@ export const movieRows: MovieRow[] = [
     "url_backdrop": "https://image.tmdb.org/t/p/w1280/1omLO5cfU8sYjm9xs9EwkyZkZ8l.jpg",
     "generos": [
       "Horror"
+    ],
+    "diretores": [
+      "Johannes Persson"
     ]
   },
   {
@@ -559,6 +663,9 @@ export const movieRows: MovieRow[] = [
     "generos": [
       "Horror",
       "Thriller"
+    ],
+    "diretores": [
+      "Lee Cronin"
     ]
   },
   {
@@ -574,6 +681,9 @@ export const movieRows: MovieRow[] = [
     "generos": [
       "Action",
       "Drama"
+    ],
+    "diretores": [
+      "Benjamin Rocher"
     ]
   },
   {
@@ -590,6 +700,9 @@ export const movieRows: MovieRow[] = [
       "Action",
       "Crime",
       "Thriller"
+    ],
+    "diretores": [
+      "Asif Akbar"
     ]
   },
   {
@@ -607,6 +720,9 @@ export const movieRows: MovieRow[] = [
       "Adventure",
       "Animation",
       "Science Fiction"
+    ],
+    "diretores": [
+      "Jeff Wamester"
     ]
   },
   {
@@ -623,6 +739,9 @@ export const movieRows: MovieRow[] = [
       "Action",
       "Adventure",
       "Science Fiction"
+    ],
+    "diretores": [
+      "Jon Watts"
     ]
   },
   {
@@ -638,6 +757,9 @@ export const movieRows: MovieRow[] = [
     "generos": [
       "Action",
       "Thriller"
+    ],
+    "diretores": [
+      "Sam Hargrave"
     ]
   },
   {
@@ -653,6 +775,9 @@ export const movieRows: MovieRow[] = [
     "generos": [
       "Drama",
       "Romance"
+    ],
+    "diretores": [
+      "Castille Landon"
     ]
   },
   {
@@ -668,7 +793,8 @@ export const movieRows: MovieRow[] = [
     "generos": [
       "Action",
       "Drama"
-    ]
+    ],
+    "diretores": []
   },
   {
     "sk_movie_id": "7a3431079560938fe6314f960d2ce9157225bddf9b92cb012b36d9d569eb2e59",
@@ -684,7 +810,8 @@ export const movieRows: MovieRow[] = [
       "Horror",
       "Science Fiction",
       "Thriller"
-    ]
+    ],
+    "diretores": []
   },
   {
     "sk_movie_id": "2e4fa7bd8acc7de44b294b2fcce1718ca43fc6aef1bede8d03adf11df68b871d",
@@ -700,6 +827,9 @@ export const movieRows: MovieRow[] = [
       "Action",
       "Drama",
       "Science Fiction"
+    ],
+    "diretores": [
+      "Hideaki Anno"
     ]
   },
   {
@@ -715,7 +845,8 @@ export const movieRows: MovieRow[] = [
     "generos": [
       "Horror",
       "Thriller"
-    ]
+    ],
+    "diretores": []
   },
   {
     "sk_movie_id": "94ac464ea33f7c9ce13b568a6bf1395ec904b7674bd02fc62d7bedf5190a4cb6",
@@ -731,7 +862,8 @@ export const movieRows: MovieRow[] = [
       "Adventure",
       "Comedy",
       "Family"
-    ]
+    ],
+    "diretores": []
   },
   {
     "sk_movie_id": "90b2630391e03cb7b5aa6f9eecbd06348eceb91031c94af54ecc131f133b742d",
@@ -747,6 +879,9 @@ export const movieRows: MovieRow[] = [
       "Action",
       "Science Fiction",
       "Thriller"
+    ],
+    "diretores": [
+      "Dan Trachtenberg"
     ]
   },
   {
@@ -764,6 +899,9 @@ export const movieRows: MovieRow[] = [
       "Comedy",
       "Family",
       "Horror"
+    ],
+    "diretores": [
+      "Marvick Eduardo Núñez Aguilera"
     ]
   }
 ]
@@ -1201,4 +1339,26 @@ export const reviewRows: ReviewRow[] = [
     "created_at": "2026-08-28T23:24:00.000000",
     "curtidas": 294
   }
+]
+
+export const genreNames: string[] = [
+  "Action",
+  "Adventure",
+  "Animation",
+  "Comedy",
+  "Crime",
+  "Documentary",
+  "Drama",
+  "Family",
+  "Fantasy",
+  "History",
+  "Horror",
+  "Music",
+  "Mystery",
+  "Romance",
+  "Science Fiction",
+  "Thriller",
+  "Tv Movie",
+  "War",
+  "Western"
 ]

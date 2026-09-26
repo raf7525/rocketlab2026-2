@@ -36,6 +36,53 @@
   color: var(--text);
 }
 
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Botão verde do cabeçalho, como o "+ Log" do Letterboxd. */
+.addMovie {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px 5px;
+  border-radius: var(--radius-sm);
+  background: var(--button);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.075em;
+  color: #ffffff;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: background-color 120ms ease-out;
+}
+
+.addMovie:hover {
+  background: var(--button-hover);
+}
+
+/* Em telas estreitas o botão fica só com o "+"; o texto continua para os leitores de tela. */
+@media (max-width: 479px) {
+  .addMovie {
+    padding: 4px 12px 2px;
+    font-size: 18px;
+  }
+
+  .addMovieText {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
 .mockBadge {
   padding: 3px 10px 2px;
   border: 1px solid var(--border);
@@ -45,4 +92,11 @@
   color: var(--text-muted);
   text-transform: uppercase;
   cursor: help;
+}
+
+/* O selo só avisa que a API é simulada; no celular, o espaço fica para o botão. */
+@media (max-width: 639px) {
+  .mockBadge {
+    display: none;
+  }
 }

@@ -15,14 +15,20 @@ export function Layout() {
             </span>
             RocketLab <span className={styles.brandSuffix}>filmes</span>
           </Link>
-          {USING_MOCKS && (
-            <span
-              className={styles.mockBadge}
-              title="API simulada no navegador (MSW) com uma amostra dos CSVs. Recarregar a página desfaz as mudanças."
-            >
-              dados de exemplo
-            </span>
-          )}
+          <div className={styles.actions}>
+            {USING_MOCKS && (
+              <span
+                className={styles.mockBadge}
+                title="API simulada no navegador (MSW) com uma amostra dos CSVs. Recarregar a página desfaz as mudanças."
+              >
+                dados de exemplo
+              </span>
+            )}
+            <Link to="/filmes/novo" className={styles.addMovie}>
+              <span aria-hidden="true">+</span>
+              <span className={styles.addMovieText}>Adicionar filme</span>
+            </Link>
+          </div>
         </div>
       </header>
 

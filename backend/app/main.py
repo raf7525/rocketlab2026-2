@@ -9,7 +9,7 @@ from app.api.v1.router import api_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.db.session import engine
-from app.shared.exceptions import NotFoundError
+from app.shared.exceptions import BusinessRuleError, NotFoundError
 
 configure_logging()
 settings = get_settings()
@@ -45,6 +45,13 @@ def create_app() -> FastAPI:
     async def not_found_handler(request: Request, exc: NotFoundError) -> JSONResponse:
         del request
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"detail": str(exc)})
+
+    @app.exception_handler(BusinessRuleError)
+    async def business_rule_handler(request: Request, exc: BusinessRuleError) -> JSONResponse:
+        del request
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, content={"detail": str(exc)}
+        )
 
     @app.get("/health", tags=["health"])
     async def health_check() -> dict[str, str]:

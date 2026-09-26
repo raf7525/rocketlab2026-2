@@ -35,6 +35,12 @@ def generate_surrogate_key() -> str:
     return sha256(uuid4().bytes).hexdigest()
 
 
+def generate_local_movie_id() -> str:
+    """`id_filme` dos filmes cadastrados pela aplicação, que não têm id no TMDB."""
+
+    return f"local-{uuid4().hex}"
+
+
 def utc_now() -> datetime:
     """Momento atual em UTC sem fuso, como o CURRENT_TIMESTAMP do SQLite, com microssegundos."""
 
@@ -102,7 +108,9 @@ class DimMovie(Base):
     sk_movie_id: Mapped[str] = mapped_column(
         String(64), primary_key=True, default=generate_surrogate_key
     )
-    id_filme: Mapped[str] = mapped_column(String(50), unique=True, index=True)
+    id_filme: Mapped[str] = mapped_column(
+        String(50), unique=True, index=True, default=generate_local_movie_id
+    )
     titulo: Mapped[str] = mapped_column(String(500), index=True)
     data_lancamento: Mapped[date | None] = mapped_column(Date, default=None)
     ano_lancamento: Mapped[int | None] = mapped_column(Integer, index=True, default=None)
@@ -166,6 +174,7 @@ class DimCompany(Base):
 
 PERSON_TYPES: tuple[str, ...] = ("Ator", "Diretor", "Roteirista")
 PersonType = Literal["Ator", "Diretor", "Roteirista"]
+DIRECTOR: PersonType = "Diretor"
 
 
 class DimPerson(Base):

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatCount, formatDecimal, formatDuration, pluralize } from './format'
+import { formatCount, formatDecimal, formatDuration, formatList, pluralize } from './format'
 
 describe('formatDuration', () => {
   it.each([
@@ -24,6 +24,18 @@ describe('formatDecimal', () => {
   it('mostra uma casa decimal com vírgula', () => {
     expect(formatDecimal(3.625)).toBe('3,6')
     expect(formatDecimal(4)).toBe('4,0')
+  })
+})
+
+describe('formatList', () => {
+  it('junta os nomes com vírgulas e "e"', () => {
+    expect(formatList(['Greta Gerwig'])).toBe('Greta Gerwig')
+    expect(formatList(['Lana Wachowski', 'Lilly Wachowski'])).toBe(
+      'Lana Wachowski e Lilly Wachowski',
+    )
+    expect(formatList(['Jeff Rowe', 'Kyler Spears', 'Peter Sohn'])).toBe(
+      'Jeff Rowe, Kyler Spears e Peter Sohn',
+    )
   })
 })
 

@@ -98,6 +98,16 @@
   color: var(--chip);
 }
 
+/* "Dirigido por" discreto e os nomes em destaque, como o "Directed by" do Letterboxd. */
+.directors {
+  font-size: 15px;
+}
+
+.directorNames {
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
 .synopsis {
   max-width: 65ch;
   margin-top: -12px;
