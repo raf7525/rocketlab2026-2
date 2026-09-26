@@ -15,3 +15,6 @@ htmlcov/
 
 # CSVs da carga (python -m scripts.load_data): grandes demais para o git
 data/**/*.csv
+
+# Imagens enviadas pela aplicação (pôsteres)
+media/

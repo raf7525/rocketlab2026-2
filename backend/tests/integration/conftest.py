@@ -1,12 +1,14 @@
 """Infraestrutura dos testes de integração: banco SQLite em memória e cliente HTTP."""
 
 from collections.abc import AsyncIterator
+from pathlib import Path
 
 import httpx
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
+from app.core.config import get_settings
 from app.db.base import Base
 from app.db.session import enable_sqlite_foreign_keys, get_db
 from app.main import app
@@ -61,3 +63,11 @@ async def movie(session: AsyncSession) -> DimMovie:
     session.add(movie)
     await session.commit()
     return movie
+
+
+@pytest.fixture(autouse=True)
+def media_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Pasta temporária para as imagens enviadas: nenhum teste escreve em `backend/media/`."""
+
+    monkeypatch.setattr(get_settings(), "media_dir", tmp_path)
+    return tmp_path
