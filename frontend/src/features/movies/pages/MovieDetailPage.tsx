@@ -8,6 +8,7 @@ import { formatDuration, formatListParts } from '../../../shared/lib/format'
 import { tmdbImage } from '../../../shared/lib/images'
 import { MovieReviews } from '../../reviews/components/MovieReviews'
 import { ReviewForm } from '../../reviews/components/ReviewForm'
+import { WatchlistButton } from '../../watchlist/components/WatchlistButton'
 import { AverageRating } from '../components/AverageRating'
 import { GenreList } from '../components/GenreList'
 import { MovieEditor } from '../components/MovieEditor'
@@ -81,6 +82,7 @@ export function MovieDetailPage() {
           <div className={styles.rating}>
             <AverageRating summary={data} size="lg" showCount />
           </div>
+          <WatchlistButton movie={data} variant="labeled" className={styles.save} />
         </aside>
 
         <div className={styles.main}>

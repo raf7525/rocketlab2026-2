@@ -116,6 +116,7 @@ export const handlers = [
     const movie = findMovie(params)
     if (!movie) return movieNotFound()
     db.movies = db.movies.filter((row) => row !== movie)
+    db.watchlist = db.watchlist.filter((id) => id !== movie.sk_movie_id)
     deletePoster(movie.url_poster)
     db.reviews = db.reviews.filter((review) => review.sk_movie_id !== movie.sk_movie_id)
     return new HttpResponse(null, { status: 204 })
@@ -144,6 +145,43 @@ export const handlers = [
     const file = db.posters.get(String(params.name))
     if (!file) return HttpResponse.json({ detail: 'Imagem não encontrada.' }, { status: 404 })
     return new HttpResponse(file, { headers: { 'Content-Type': file.type } })
+  }),
+
+  http.get(`${API}/watchlist`, async ({ request }) => {
+    await delay()
+    const params = new URL(request.url).searchParams
+    const page = Math.max(1, Number(params.get('page') ?? 1))
+    const pageSize = Math.max(1, Number(params.get('page_size') ?? 24))
+    const start = (page - 1) * pageSize
+    // Do guardado por último para o primeiro, como no backend.
+    const movies = [...db.watchlist]
+      .reverse()
+      .map((id) => db.movies.find((movie) => movie.sk_movie_id === id))
+      .filter((movie): movie is MovieRow => movie !== undefined)
+    return HttpResponse.json({
+      items: movies.slice(start, start + pageSize).map(toMovieSummary),
+      total: movies.length,
+      page,
+      page_size: pageSize,
+      pages: Math.ceil(movies.length / pageSize),
+    })
+  }),
+
+  // Guardar e tirar podem ser repetidos sem efeito extra, como no backend.
+  http.put(`${API}/watchlist/:movieId`, async ({ params }) => {
+    await delay()
+    const movie = findMovie(params)
+    if (!movie) return movieNotFound()
+    if (!db.watchlist.includes(movie.sk_movie_id)) db.watchlist.push(movie.sk_movie_id)
+    return new HttpResponse(null, { status: 204 })
+  }),
+
+  http.delete(`${API}/watchlist/:movieId`, async ({ params }) => {
+    await delay()
+    const movie = findMovie(params)
+    if (!movie) return movieNotFound()
+    db.watchlist = db.watchlist.filter((id) => id !== movie.sk_movie_id)
+    return new HttpResponse(null, { status: 204 })
   }),
 
   http.get(`${API}/genres`, async () => {
@@ -364,6 +402,7 @@ function toMovieSummary(movie: MovieRow): MovieSummary {
     duracao_minutos: movie.duracao_minutos,
     url_poster: movie.url_poster,
     generos: movie.generos,
+    na_watchlist: db.watchlist.includes(movie.sk_movie_id),
     ...ratingSummary(movie.sk_movie_id),
   }
 }

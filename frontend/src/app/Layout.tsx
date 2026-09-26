@@ -1,6 +1,7 @@
-import { Link, Outlet, ScrollRestoration } from 'react-router'
+import { Link, NavLink, Outlet, ScrollRestoration } from 'react-router'
 
 import { useCatalogReturnState } from '../features/movies/hooks/useBackToCatalog'
+import { BookmarkIcon } from '../features/watchlist/components/BookmarkIcon'
 
 import styles from './Layout.module.css'
 
@@ -30,6 +31,11 @@ export function Layout() {
                 dados de exemplo
               </span>
             )}
+            {/* Em todas as páginas; na própria watchlist, marcado como a página atual. */}
+            <NavLink to="/watchlist" className={styles.watchlist}>
+              <BookmarkIcon filled={false} className={styles.watchlistIcon} />
+              <span className={styles.watchlistText}>Watchlist</span>
+            </NavLink>
             {catalogReturn && (
               <Link to="/filmes/novo" state={catalogReturn} className={styles.addMovie}>
                 <span aria-hidden="true">+</span>

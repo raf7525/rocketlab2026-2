@@ -1,0 +1,61 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease-out,
+    color 120ms ease-out;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.glyph {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+/* Sobre o pôster: um círculo escuro deixa o ícone legível em qualquer imagem. */
+.icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgb(20 24 28 / 72%);
+  color: #ffffff;
+  backdrop-filter: blur(4px);
+}
+
+.icon:hover {
+  background: rgb(20 24 28 / 92%);
+}
+
+.icon[aria-pressed='true'] {
+  color: var(--chip);
+}
+
+/* Na página do filme: botão com texto, que fica laranja quando o filme está salvo. */
+.labeled {
+  padding: 8px 14px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-soft);
+  text-transform: uppercase;
+}
+
+.labeled:hover {
+  background: var(--surface-hover);
+}
+
+.labeled[aria-pressed='true'] {
+  background: var(--chip);
+  color: var(--chip-text);
+}

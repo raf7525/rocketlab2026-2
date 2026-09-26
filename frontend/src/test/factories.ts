@@ -48,6 +48,7 @@ export function makeMovieSummary(overrides: Partial<MovieSummary> = {}): MovieSu
     titulo: `Filme ${n}`,
     ano_lancamento: 2023,
     duracao_minutos: 128,
+    na_watchlist: false,
     url_poster: `https://image.tmdb.org/t/p/w500/poster-${n}.jpg`,
     generos: ['Action'],
     qtd_avaliacoes_usuarios: 0,

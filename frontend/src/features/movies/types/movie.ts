@@ -17,6 +17,8 @@ export type MovieSummary = RatingSummary & {
   duracao_minutos: number | null
   url_poster: string | null
   generos: string[]
+  /** Se o filme está guardado na watchlist. */
+  na_watchlist: boolean
 }
 
 /** Filme com os dados da página de detalhe: `GET /movies/{sk_movie_id}`. */

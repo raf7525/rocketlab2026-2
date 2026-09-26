@@ -6,6 +6,14 @@
   display: block;
 }
 
+/* Ícone de salvar no canto do pôster, como o do Instagram. */
+.save {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+}
+
 .link:focus-visible {
   outline: none;
 }

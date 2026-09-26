@@ -110,6 +110,10 @@
   margin-top: 16px;
 }
 
+.save {
+  margin-top: 14px;
+}
+
 .main {
   display: grid;
   align-content: start;

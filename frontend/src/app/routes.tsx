@@ -4,6 +4,7 @@ import { CatalogPage } from '../features/movies/pages/CatalogPage'
 import { MovieDetailPage } from '../features/movies/pages/MovieDetailPage'
 import { NewMoviePage } from '../features/movies/pages/NewMoviePage'
 import { NewReviewPage } from '../features/reviews/pages/NewReviewPage'
+import { WatchlistPage } from '../features/watchlist/pages/WatchlistPage'
 import { PageMessage } from '../shared/components/PageMessage'
 import { Layout } from './Layout'
 
@@ -16,6 +17,7 @@ export const routes: RouteObject[] = [
       { path: 'filmes/novo', element: <NewMoviePage /> },
       { path: 'filmes/:movieId', element: <MovieDetailPage /> },
       { path: 'filmes/:movieId/avaliar', element: <NewReviewPage /> },
+      { path: 'watchlist', element: <WatchlistPage /> },
       { path: '*', element: <PageMessage title="Página não encontrada" /> },
     ],
   },

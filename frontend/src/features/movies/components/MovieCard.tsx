@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { cx } from '../../../shared/lib/cx'
 import { formatDuration, pluralize } from '../../../shared/lib/format'
 import { tmdbImage } from '../../../shared/lib/images'
+import { WatchlistButton } from '../../watchlist/components/WatchlistButton'
 import { useCatalogReturnState } from '../hooks/useBackToCatalog'
 import type { MovieSummary } from '../types/movie'
 import { AverageRating } from './AverageRating'
@@ -72,6 +73,9 @@ export function MovieCard({ movie }: { movie: MovieSummary }) {
           {movie.titulo}
         </h3>
       </Link>
+
+      {/* Fora do link (um botão não pode ficar dentro dele), mas por cima do pôster. */}
+      <WatchlistButton movie={movie} variant="icon" className={styles.save} />
 
       <div
         id={`${id}-detalhes`}
