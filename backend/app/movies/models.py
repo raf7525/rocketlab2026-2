@@ -172,6 +172,10 @@ class DimCompany(Base):
     )
 
 
+# Os únicos valores de `status_filme` que aparecem nos CSVs.
+MOVIE_STATUSES: tuple[str, ...] = ("Lançado", "Pós-Produção", "Em Produção", "Planejado")
+MovieStatus = Literal["Lançado", "Pós-Produção", "Em Produção", "Planejado"]
+
 PERSON_TYPES: tuple[str, ...] = ("Ator", "Diretor", "Roteirista")
 PersonType = Literal["Ator", "Diretor", "Roteirista"]
 DIRECTOR: PersonType = "Diretor"

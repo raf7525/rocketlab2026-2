@@ -10,6 +10,9 @@ VALID_MOVIE = {
     "generos": ["Drama", "History"],
     "sinopse": "A história de J. Robert Oppenheimer.",
     "elenco": [],
+    "duracao_minutos": None,
+    "status_filme": None,
+    "url_poster": None,
 }
 
 

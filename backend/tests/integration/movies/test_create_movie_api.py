@@ -156,6 +156,37 @@ async def test_the_same_person_can_direct_and_act(client: httpx.AsyncClient) -> 
 
 
 @pytest.mark.usefixtures("genres")
+async def test_create_movie_with_duration_status_and_poster(client: httpx.AsyncClient) -> None:
+    poster = (
+        await client.post(
+            "/api/v1/posters",
+            content=b"\x89PNG\r\n\x1a\n" + b"0" * 8,
+            headers={"Content-Type": "image/png"},
+        )
+    ).json()["url"]
+
+    response = await client.post(
+        MOVIES_URL,
+        json=movie_payload(duracao_minutos=180, status_filme="Pós-Produção", url_poster=poster),
+    )
+
+    body = response.json()
+    assert response.status_code == 201
+    assert body["duracao_minutos"] == 180
+    assert body["status_filme"] == "Pós-Produção"
+    assert body["url_poster"] == poster
+
+
+@pytest.mark.usefixtures("genres")
+async def test_poster_can_be_an_image_address(client: httpx.AsyncClient) -> None:
+    url = "https://image.tmdb.org/t/p/w500/oppenheimer.jpg"
+
+    response = await client.post(MOVIES_URL, json=movie_payload(url_poster=url))
+
+    assert response.json()["url_poster"] == url
+
+
+@pytest.mark.usefixtures("genres")
 async def test_genres_are_matched_ignoring_case(client: httpx.AsyncClient) -> None:
     response = await client.post(MOVIES_URL, json=movie_payload(generos=["science fiction"]))
 
@@ -193,6 +224,12 @@ async def test_unknown_genre_returns_422_and_nothing_is_saved(
         {"generos": []},
         {"elenco": [" "]},
         {"elenco": ["a" * 256]},
+        {"duracao_minutos": 0},
+        {"duracao_minutos": 20001},
+        {"duracao_minutos": "90"},
+        {"status_filme": "Cancelado"},
+        {"url_poster": "javascript:alert(1)"},
+        {"url_poster": "/api/v1/posters/../../rocketlab.db"},
     ],
 )
 async def test_invalid_movie_returns_422_and_is_not_saved(

@@ -252,6 +252,24 @@ async def test_movie_with_two_matching_people_appears_once(
     assert response.json()["total"] == 1
 
 
+async def test_filter_by_status(client: httpx.AsyncClient, session: AsyncSession) -> None:
+    released = movie_with("Oppenheimer", popularidade=90)
+    released.status_filme = "Lançado"
+    planned = movie_with("The Odyssey", popularidade=80)
+    planned.status_filme = "Planejado"
+    await add_movies(session, released, planned)
+
+    response = await client.get(MOVIES_URL, params={"status": "Planejado"})
+
+    assert titles(response) == ["The Odyssey"]
+
+
+async def test_unknown_status_filter_returns_422(client: httpx.AsyncClient) -> None:
+    response = await client.get(MOVIES_URL, params={"status": "Cancelado"})
+
+    assert response.status_code == 422
+
+
 async def test_filters_combine(client: httpx.AsyncClient, session: AsyncSession) -> None:
     drama, action = DimGenre(nome_genero="Drama"), DimGenre(nome_genero="Action")
     murphy = actor("Cillian Murphy")

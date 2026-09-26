@@ -5,7 +5,8 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field, StringConstraints, field_validator, model_validator
 
-from app.movies.models import ACTOR, DIRECTOR, DimMovie
+from app.movies.models import ACTOR, DIRECTOR, DimMovie, MovieStatus
+from app.posters.storage import is_uploaded_poster
 from app.shared.pagination import PageParams
 from app.shared.ratings import RatingSummary
 
@@ -13,7 +14,11 @@ from app.shared.ratings import RatingSummary
 MIN_YEAR = 1888
 MAX_YEAR = 2100
 
+# O filme mais longo do CSV tem 13.319 minutos (Svalbard Minutt For Minutt).
+MAX_DURATION = 20_000
+
 Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=255)]
+PosterUrl = Annotated[str, StringConstraints(strip_whitespace=True, max_length=2048)]
 
 
 class MovieCreate(BaseModel):
@@ -26,6 +31,19 @@ class MovieCreate(BaseModel):
     sinopse: Annotated[str, StringConstraints(strip_whitespace=True, max_length=4000)] | None = None
     elenco: list[Name] = []
     """Atores e atrizes, opcional."""
+    duracao_minutos: Annotated[int, Field(ge=1, le=MAX_DURATION, strict=True)] | None = None
+    status_filme: MovieStatus | None = None
+    url_poster: PosterUrl | None = None
+    """Endereço devolvido por `POST /posters` ou um link http(s) de imagem (como os do TMDB)."""
+
+    @field_validator("url_poster")
+    @classmethod
+    def _poster_from_upload_or_link(cls, url: str | None) -> str | None:
+        if not url:
+            return None
+        if is_uploaded_poster(url) or url.startswith(("https://", "http://")):
+            return url
+        raise ValueError("use o endereço devolvido por POST /posters ou um link http(s)")
 
     @field_validator("diretores", "generos", "elenco")
     @classmethod
@@ -48,8 +66,9 @@ class MovieCreate(BaseModel):
 class MovieUpdate(MovieCreate):
     """Edição de um filme: os mesmos campos e regras do cadastro, e o envio substitui todos eles.
 
-    Sem `elenco`, o elenco atual continua; com ele (mesmo vazio), o elenco é trocado. O que o
-    formulário não mostra (pôster, duração, roteiristas, métricas, avaliações) fica como está.
+    Campos opcionais que não vêm (`elenco`, `duracao_minutos`, `status_filme`, `url_poster`)
+    continuam como estão; vindo, mesmo vazios ou nulos, são trocados. O que o formulário não
+    mostra (roteiristas, métricas, avaliações) nunca muda.
     """
 
     elenco: list[Name] | None = None  # type: ignore[assignment]
@@ -72,11 +91,18 @@ class MovieFilters(BaseModel):
     """Parte do nome de quem dirigiu."""
     ator: SearchText | None = None
     """Parte do nome de alguém do elenco."""
+    status: MovieStatus | None = None
+    """Um dos status dos CSVs (Lançado, Pós-Produção, Em Produção, Planejado)."""
 
     @field_validator("busca", "genero", "diretor", "ator")
     @classmethod
     def _blank_is_none(cls, value: str | None) -> str | None:
         return value or None
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def _blank_status_is_none(cls, value: object) -> object:
+        return value if value != "" else None
 
 
 class CatalogParams(MovieFilters, PageParams):

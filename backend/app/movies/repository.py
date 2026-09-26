@@ -37,6 +37,8 @@ def _filtered(query: Select, filters: MovieFilters) -> Select:
                 .where(func.lower(DimGenre.nome_genero) == filters.genero.lower())
             )
         )
+    if filters.status:
+        query = query.where(DimMovie.status_filme == filters.status)
     for tipo, nome in ((DIRECTOR, filters.diretor), (ACTOR, filters.ator)):
         if nome:
             query = query.where(

@@ -1,4 +1,5 @@
 from datetime import date
+from pathlib import Path
 
 import httpx
 import pytest
@@ -58,6 +59,14 @@ def movie_payload(**changes: object) -> dict[str, object]:
     }
 
 
+async def upload_poster(client: httpx.AsyncClient) -> str:
+    png = b"\x89PNG\r\n\x1a\n" + b"0" * 8
+    response = await client.post(
+        "/api/v1/posters", content=png, headers={"Content-Type": "image/png"}
+    )
+    return response.json()["url"]
+
+
 async def count(session_factory: async_sessionmaker[AsyncSession], what: object) -> int:
     async with session_factory() as fresh_session:
         return await fresh_session.scalar(select(func.count()).select_from(what)) or 0
@@ -110,6 +119,39 @@ async def test_update_can_clear_the_cast(client: httpx.AsyncClient, movie: DimMo
     response = await client.put(f"{MOVIES_URL}/{movie.sk_movie_id}", json=movie_payload(elenco=[]))
 
     assert response.json()["elenco"] == []
+
+
+async def test_update_changes_duration_status_and_poster(
+    client: httpx.AsyncClient, movie: DimMovie
+) -> None:
+    response = await client.put(
+        f"{MOVIES_URL}/{movie.sk_movie_id}",
+        json=movie_payload(duracao_minutos=181, status_filme="Lançado", url_poster=None),
+    )
+
+    body = response.json()
+    assert (body["duracao_minutos"], body["status_filme"], body["url_poster"]) == (
+        181,
+        "Lançado",
+        None,
+    )
+
+
+async def test_new_poster_replaces_and_deletes_the_old_uploaded_file(
+    client: httpx.AsyncClient, movie: DimMovie, media_dir: Path
+) -> None:
+    old = await upload_poster(client)
+    new = await upload_poster(client)
+    await client.put(f"{MOVIES_URL}/{movie.sk_movie_id}", json=movie_payload(url_poster=old))
+
+    response = await client.put(
+        f"{MOVIES_URL}/{movie.sk_movie_id}", json=movie_payload(url_poster=new)
+    )
+
+    assert response.json()["url_poster"] == new
+    assert sorted(path.name for path in (media_dir / "posters").iterdir()) == [
+        new.rsplit("/", 1)[1]
+    ]
 
 
 async def test_update_keeps_writers_linked(
@@ -220,6 +262,17 @@ async def test_delete_movie_removes_its_reviews_metrics_and_links(
     assert await count(session_factory, FactMoviePerformance) == 0
     assert await count(session_factory, bridge_movie_genre) == 0
     assert await count(session_factory, bridge_movie_person) == 0
+
+
+async def test_delete_movie_deletes_its_uploaded_poster(
+    client: httpx.AsyncClient, movie: DimMovie, media_dir: Path
+) -> None:
+    poster = await upload_poster(client)
+    await client.put(f"{MOVIES_URL}/{movie.sk_movie_id}", json=movie_payload(url_poster=poster))
+
+    await client.delete(f"{MOVIES_URL}/{movie.sk_movie_id}")
+
+    assert list((media_dir / "posters").iterdir()) == []
 
 
 async def test_delete_movie_keeps_genres_and_people(

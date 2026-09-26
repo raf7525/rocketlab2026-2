@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.movies import repository
 from app.movies.models import ACTOR, DIRECTOR, DimGenre, DimMovie, DimPerson, PersonType
 from app.movies.schemas import MovieCreate, MovieFilters, MovieSummary, MovieUpdate
+from app.posters import storage
 from app.shared.exceptions import BusinessRuleError, NotFoundError
 from app.shared.pagination import Page, PageParams
 
@@ -37,7 +38,10 @@ async def create_movie(session: AsyncSession, data: MovieCreate) -> DimMovie:
     movie = DimMovie(
         titulo=data.titulo,
         ano_lancamento=data.ano_lancamento,
+        duracao_minutos=data.duracao_minutos,
+        status_filme=data.status_filme,
         sinopse=data.sinopse,
+        url_poster=data.url_poster,
         genres=genres,
         people=directors + cast,
     )
@@ -50,7 +54,7 @@ async def create_movie(session: AsyncSession, data: MovieCreate) -> DimMovie:
 
 
 async def update_movie(session: AsyncSession, sk_movie_id: str, data: MovieUpdate) -> DimMovie:
-    """Substitui título, ano, sinopse, gêneros, diretores e (se enviado) o elenco."""
+    """Substitui título, ano, sinopse, gêneros, diretores e os campos opcionais enviados."""
 
     movie = await get_movie(session, sk_movie_id)
     genres = await _find_genres(session, data.generos)
@@ -66,11 +70,20 @@ async def update_movie(session: AsyncSession, sk_movie_id: str, data: MovieUpdat
         movie.data_lancamento = None
     movie.ano_lancamento = data.ano_lancamento
     movie.sinopse = data.sinopse
+    # Os opcionais só mudam quando vêm na requisição (mesmo nulos): sem eles, ficam como estão.
+    old_poster = movie.url_poster
+    for field in ("duracao_minutos", "status_filme", "url_poster"):
+        if field in data.model_fields_set:
+            setattr(movie, field, getattr(data, field))
     movie.genres = genres
     # Troca só os papéis enviados; roteiristas (e o elenco, se não veio) continuam ligados.
     kept = [person for person in movie.people if person.tipo_pessoa not in replaced]
     movie.people = kept + [person for people in replaced.values() for person in people]
     await session.commit()
+
+    # Só depois do commit: se a gravação falhasse, o filme apontaria para um arquivo apagado.
+    if movie.url_poster != old_poster:
+        storage.delete_poster(old_poster)
 
     session.expunge(movie)
     return await get_movie(session, sk_movie_id)
@@ -80,8 +93,10 @@ async def delete_movie(session: AsyncSession, sk_movie_id: str) -> None:
     """Apaga o filme com avaliações, métricas e ligações; gêneros e pessoas continuam no banco."""
 
     movie = await get_movie(session, sk_movie_id)
+    poster = movie.url_poster
     await session.delete(movie)
     await session.commit()
+    storage.delete_poster(poster)
 
 
 async def list_genre_names(session: AsyncSession) -> list[str]:
