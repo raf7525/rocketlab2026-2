@@ -31,7 +31,8 @@ Além do que foi pedido:
 - **Responsivo:** o layout funciona do celular ao desktop.
 - **Cache de consultas:** o front usa o TanStack Query, que evita buscar de novo o que já foi
   carregado.
-- **Testes automatizados:** backend com pytest e frontend com Vitest e Testing Library.
+- **Testes automatizados:** em três camadas: pytest no backend, Vitest nas telas e Cypress com
+  Cucumber de ponta a ponta (veja [Testes e qualidade](#testes-e-qualidade)).
 - **Modo de demonstração sem backend:** `npm run dev:mock` (veja
   [Só o frontend, com dados de exemplo](#só-o-frontend-com-dados-de-exemplo)).
 
@@ -106,6 +107,18 @@ recarregar a página desfaz tudo.
 
 ## Testes e qualidade
 
+Os testes ficam em três camadas, e cada uma cuida de uma coisa, sem repetir as outras:
+
+| Camada | Ferramenta | O que garante | Onde fica |
+|---|---|---|---|
+| Backend | pytest | As regras da API e do banco: validações, filtros, médias, códigos de erro, migrações. | `backend/tests/` |
+| Frontend | Vitest, Testing Library e MSW | O comportamento das telas com uma API simulada: formulários, mensagens de erro, navegação, foco. | `frontend/src/**/*.test.tsx` |
+| Ponta a ponta | Cypress com Cucumber | Que as partes funcionam juntas: navegador, front, API e banco de verdade, nas histórias do desafio. | `frontend/cypress/` |
+
+Os testes ponta a ponta cobrem só o caminho principal de cada história (um ou dois cenários cada)
+e terminam conferindo o resultado depois de recarregar a página, ou seja, que ficou gravado no
+banco. Os detalhes (cada validação, cada erro) ficam nas camadas de baixo, que são rápidas.
+
 ```bash
 # backend, dentro de backend/
 .venv/bin/pytest                 # testes de unidade e de integração da API
@@ -113,13 +126,46 @@ recarregar a página desfaz tudo.
 .venv/bin/ruff format --check .  # formatação
 
 # frontend, dentro de frontend/
-npm run test:run                 # testes (Vitest + Testing Library + MSW)
+npm run test:run                 # testes das telas (Vitest)
 npm run lint                     # lint (oxlint)
 npm run build                    # checagem de tipos e build de produção
+npm run e2e                      # testes ponta a ponta (Cypress), sem abrir janela
+npm run e2e:open                 # os mesmos, na interface do Cypress
 ```
 
-Os testes não tocam no banco de verdade. Os do backend criam um SQLite novo em memória para
-cada teste, e os do frontend usam a API simulada pelo MSW.
+Nenhum teste toca no banco de verdade. Os do backend criam um SQLite em memória para cada
+teste, e os do frontend usam a API simulada pelo MSW.
+
+### Testes ponta a ponta
+
+Os cenários estão em português, um arquivo `.feature` por história do desafio, em
+`frontend/cypress/e2e/`. Por exemplo:
+
+```gherkin
+Cenário: Buscar filmes pelo título
+  Quando busco por "matrix"
+  Então o catálogo mostra só os filmes:
+    | The Matrix          |
+    | The Matrix Reloaded |
+```
+
+O `npm run e2e` faz tudo sozinho:
+
+1. cria um banco SQLite temporário com dados fixos (`backend/scripts/seed_e2e.py`: 28 filmes,
+   entre eles The Matrix, Heat e Oppenheimer);
+2. sobe uma API (porta 8001) e um front (porta 5175) só para os testes, então dá para rodar com
+   a aplicação aberta;
+3. roda os cenários, recriando o banco antes de cada um, para que nenhum dependa de outro;
+4. desliga tudo e apaga o banco temporário.
+
+Requisitos:
+
+- O backend instalado (`backend/.venv`), como em [Como executar](#como-executar).
+- No Linux e no WSL, as bibliotecas do navegador do Cypress:
+  `sudo apt install -y libnss3 libasound2t64 libxss1 xvfb` (em versões mais antigas do Ubuntu,
+  `libasound2` no lugar de `libasound2t64`).
+- Se o `npm install` avisar que bloqueou scripts de instalação, baixe o navegador do Cypress com
+  `npx cypress install`.
 
 ## API
 
@@ -156,17 +202,22 @@ Os erros seguem o padrão do FastAPI: `404` com `{"detail": "Filme não encontra
 │   │   ├── core/         # configurações (.env) e logging
 │   │   ├── db/           # Base ORM, engine e sessões
 │   │   ├── movies/       # catálogo: models, schemas, router, service, repository
+│   │   ├── posters/      # envio e leitura das imagens de pôster
 │   │   ├── reviews/      # avaliações e curtidas, com a mesma divisão
+│   │   ├── watchlist/    # filmes guardados para assistir depois
 │   │   └── shared/       # paginação, escala de notas e erros de negócio
 │   ├── migrations/       # revisões do Alembic
-│   ├── scripts/          # carga dos CSVs (load_data.py)
+│   ├── scripts/          # carga dos CSVs (load_data.py) e dados dos testes E2E (seed_e2e.py)
 │   └── tests/            # unit/ e integration/
 └── frontend/
+    ├── cypress/          # testes ponta a ponta: cenários (.feature) e passos
+    ├── scripts/          # e2e.mjs: sobe API, front e banco de teste e roda o Cypress
     └── src/
         ├── app/          # rotas, layout e tema
         ├── features/
         │   ├── movies/   # catálogo, busca, detalhe, cadastro e edição
-        │   └── reviews/  # formulário, lista, reviews populares e curtidas
+        │   ├── reviews/  # formulário, lista, reviews populares e curtidas
+        │   └── watchlist/ # ícone de salvar e página da watchlist
         ├── shared/       # componentes e utilitários comuns (estrelas, paginação, API)
         └── test/         # API simulada (MSW), dados de exemplo e fábricas
 ```
