@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { makeMovieRow, makeReviewRow } from '../../../test/factories'
@@ -88,6 +88,24 @@ describe('Busca no catálogo', () => {
     expect(await within(catalog()).findByText('1 filme')).toBeInTheDocument()
     expect(await shownTitles()).toEqual(['The Odyssey'])
     expect(router.state.location.search).toBe('?status=Planejado')
+  })
+
+  it('o campo usado continua com o foco depois da busca', async () => {
+    seedCatalog()
+    const { user, router } = renderApp('/')
+    const search = await screen.findByRole('searchbox', { name: 'Buscar pelo título' })
+
+    await user.type(search, 'matrix{Enter}')
+
+    expect(await within(catalog()).findByText('2 filmes')).toBeInTheDocument()
+    expect(screen.getByRole('searchbox', { name: 'Buscar pelo título' })).toHaveFocus()
+
+    const genre = screen.getByRole('combobox', { name: 'Gênero' })
+    await within(genre).findByRole('option', { name: 'Drama' })
+    await user.selectOptions(genre, 'Action')
+
+    await waitFor(() => expect(router.state.location.search).toBe('?busca=matrix&genero=Action'))
+    expect(screen.getByRole('combobox', { name: 'Gênero' })).toHaveFocus()
   })
 
   it('combina direção e elenco', async () => {

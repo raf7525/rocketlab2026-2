@@ -1,4 +1,4 @@
-import { type FormEvent, useId, useState } from 'react'
+import { type ChangeEvent, type FormEvent, useId, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 
 import { useGenres } from '../hooks/useMovies'
@@ -9,6 +9,18 @@ import styles from './CatalogSearch.module.css'
 /** Mesmo limite da busca no backend (`MovieFilters`). */
 const MAX_SEARCH = 200
 
+type Values = Record<keyof Required<MovieFilters>, string>
+
+function toValues(filters: MovieFilters): Values {
+  return {
+    busca: filters.busca ?? '',
+    genero: filters.genero ?? '',
+    diretor: filters.diretor ?? '',
+    ator: filters.ator ?? '',
+    status: filters.status ?? '',
+  }
+}
+
 /**
  * Barra de busca pelo título e filtros de gênero, direção e elenco. A busca fica no endereço
  * (`/?busca=…`): o formulário só monta o endereço novo e o catálogo lê dele.
@@ -17,24 +29,33 @@ export function CatalogSearch({ filters }: { filters: MovieFilters }) {
   const id = useId()
   const navigate = useNavigate()
   const genres = useGenres()
-  // Controlado: os gêneros chegam depois do primeiro render, e o escolhido precisa aparecer.
-  const [genero, setGenero] = useState(filters.genero ?? '')
-  const [status, setStatus] = useState(filters.status ?? '')
+  const [values, setValues] = useState(() => toValues(filters))
+  // Quando o endereço muda por fora (link, voltar do navegador, "Limpar busca"), os campos
+  // acompanham. O formulário não é recriado, então o campo em uso não perde o foco.
+  const url = catalogUrl(filters)
+  const [shownUrl, setShownUrl] = useState(url)
+  if (url !== shownUrl) {
+    setShownUrl(url)
+    setValues(toValues(filters))
+  }
+
+  // Busca nova começa da primeira página.
+  const search = (next: Values) => navigate(catalogUrl(next))
+
+  const change =
+    (field: keyof Values) => (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+      setValues((current) => ({ ...current, [field]: event.target.value }))
+
+  /** Gênero e status valem na hora, junto com o que já estiver digitado nos outros campos. */
+  const choose = (field: 'genero' | 'status') => (event: ChangeEvent<HTMLSelectElement>) => {
+    const next = { ...values, [field]: event.target.value }
+    setValues(next)
+    search(next)
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    const text = (name: string) => String(data.get(name) ?? '')
-    // Busca nova começa da primeira página.
-    navigate(
-      catalogUrl({
-        busca: text('busca'),
-        genero: text('genero'),
-        diretor: text('diretor'),
-        ator: text('ator'),
-        status: text('status'),
-      }),
-    )
+    search(values)
   }
 
   return (
@@ -49,7 +70,8 @@ export function CatalogSearch({ filters }: { filters: MovieFilters }) {
             id={`${id}-busca`}
             name="busca"
             type="search"
-            defaultValue={filters.busca}
+            value={values.busca}
+            onChange={change('busca')}
             maxLength={MAX_SEARCH}
             placeholder="Buscar filmes pelo título"
             autoComplete="off"
@@ -69,17 +91,15 @@ export function CatalogSearch({ filters }: { filters: MovieFilters }) {
           <select
             id={`${id}-genero`}
             name="genero"
-            value={genero}
-            onChange={(event) => {
-              setGenero(event.target.value)
-              // O gênero vale na hora, junto com o que já estiver digitado nos outros campos.
-              event.target.form?.requestSubmit()
-            }}
+            value={values.genero}
+            onChange={choose('genero')}
             className={styles.select}
           >
             <option value="">Todos os gêneros</option>
             {/* Um gênero vindo do endereço continua escolhido enquanto a lista carrega. */}
-            {genero && !genres.data?.includes(genero) && <option value={genero}>{genero}</option>}
+            {values.genero && !genres.data?.includes(values.genero) && (
+              <option value={values.genero}>{values.genero}</option>
+            )}
             {genres.data?.map((name) => (
               <option key={name} value={name}>
                 {name}
@@ -95,7 +115,8 @@ export function CatalogSearch({ filters }: { filters: MovieFilters }) {
           <input
             id={`${id}-diretor`}
             name="diretor"
-            defaultValue={filters.diretor}
+            value={values.diretor}
+            onChange={change('diretor')}
             maxLength={MAX_SEARCH}
             placeholder="Ex.: Nolan"
             autoComplete="off"
@@ -110,7 +131,8 @@ export function CatalogSearch({ filters }: { filters: MovieFilters }) {
           <input
             id={`${id}-ator`}
             name="ator"
-            defaultValue={filters.ator}
+            value={values.ator}
+            onChange={change('ator')}
             maxLength={MAX_SEARCH}
             placeholder="Ex.: Keanu Reeves"
             autoComplete="off"
@@ -125,11 +147,8 @@ export function CatalogSearch({ filters }: { filters: MovieFilters }) {
           <select
             id={`${id}-status`}
             name="status"
-            value={status}
-            onChange={(event) => {
-              setStatus(event.target.value)
-              event.target.form?.requestSubmit()
-            }}
+            value={values.status}
+            onChange={choose('status')}
             className={styles.select}
           >
             <option value="">Todos os status</option>

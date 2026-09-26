@@ -26,8 +26,7 @@ export function CatalogPage() {
       <h1 className="visually-hidden">Filmes</h1>
 
       <div className={styles.catalog}>
-        {/* A key recria o formulário quando a busca muda por fora (link, voltar, limpar). */}
-        <CatalogSearch key={catalogUrl(filters)} filters={filters} />
+        <CatalogSearch filters={filters} />
 
         <section aria-labelledby={headingId}>
           <SectionHeading
