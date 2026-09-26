@@ -4,6 +4,7 @@ from app.movies.router import genres_router
 from app.movies.router import router as movies_router
 from app.posters.router import router as posters_router
 from app.reviews.router import movie_reviews_router, reviews_router
+from app.watchlist.router import router as watchlist_router
 
 api_router = APIRouter()
 
@@ -15,3 +16,4 @@ api_router.include_router(
 )
 api_router.include_router(reviews_router, prefix="/reviews", tags=["reviews"])
 api_router.include_router(posters_router, prefix="/posters", tags=["posters"])
+api_router.include_router(watchlist_router, prefix="/watchlist", tags=["watchlist"])

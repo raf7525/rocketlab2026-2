@@ -140,6 +140,9 @@ class DimMovie(Base):
     reviews: Mapped[list["MovieReview"]] = relationship(
         back_populates="movie", cascade="all, delete-orphan", order_by="MovieReview.created_at"
     )
+    watchlist_item: Mapped["WatchlistItem | None"] = relationship(
+        back_populates="movie", cascade="all, delete-orphan", uselist=False
+    )
 
 
 class DimGenre(Base):
@@ -271,3 +274,19 @@ class DimReview(Base):
     nota_media_usuarios: Mapped[float | None] = mapped_column(Double, default=None)
 
     movie: Mapped[DimMovie] = relationship(back_populates="reviews_summary")
+
+
+class WatchlistItem(Base):
+    """Filme guardado na watchlist para assistir depois (um por filme: o sistema tem um só
+    usuário, o administrador)."""
+
+    __tablename__ = "watchlist"
+
+    sk_movie_id: Mapped[str] = mapped_column(
+        String(64), ForeignKey("dim_movies.sk_movie_id", ondelete="CASCADE"), primary_key=True
+    )
+    adicionado_em: Mapped[datetime] = mapped_column(
+        default=utc_now, server_default=func.now(), index=True
+    )
+
+    movie: Mapped[DimMovie] = relationship(back_populates="watchlist_item")

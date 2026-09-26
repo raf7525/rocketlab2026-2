@@ -18,9 +18,10 @@ from app.movies.models import (
 from app.movies.schemas import MovieFilters
 
 # O que as respostas de filme mostram além das colunas de `dim_movies`.
-_WITH_GENRES_AND_RATING = (
+WITH_GENRES_AND_RATING = (
     selectinload(DimMovie.genres),
     joinedload(DimMovie.reviews_summary),
+    joinedload(DimMovie.watchlist_item),
 )
 
 
@@ -67,7 +68,7 @@ async def list_movies(
     result = await session.scalars(
         _filtered(select(DimMovie), filters)
         .outerjoin(DimMovie.performance)
-        .options(*_WITH_GENRES_AND_RATING)
+        .options(*WITH_GENRES_AND_RATING)
         .order_by(
             FactMoviePerformance.popularidade.desc().nulls_last(),
             DimMovie.titulo,
@@ -85,7 +86,7 @@ async def get_movie(session: AsyncSession, sk_movie_id: str) -> DimMovie | None:
     return await session.scalar(
         select(DimMovie)
         .where(DimMovie.sk_movie_id == sk_movie_id)
-        .options(*_WITH_GENRES_AND_RATING, selectinload(DimMovie.people))
+        .options(*WITH_GENRES_AND_RATING, selectinload(DimMovie.people))
     )
 
 

@@ -118,11 +118,12 @@ class MovieSummary(RatingSummary):
     duracao_minutos: int | None
     url_poster: str | None
     generos: list[str]
+    na_watchlist: bool
 
     @model_validator(mode="before")
     @classmethod
     def _flatten_movie(cls, data: object) -> object:
-        """Aceita um `DimMovie` com `genres` e `reviews_summary` já carregados.
+        """Aceita um `DimMovie` com `genres`, `reviews_summary` e `watchlist_item` já carregados.
 
         O detalhe (`MovieDetail`) também precisa de `people`, para listar diretores e elenco.
         """
@@ -135,6 +136,7 @@ class MovieSummary(RatingSummary):
             "generos": [genre.nome_genero for genre in data.genres],
             "qtd_avaliacoes_usuarios": summary.qtd_avaliacoes_usuarios if summary else 0,
             "nota_media_usuarios": summary.nota_media_usuarios if summary else None,
+            "na_watchlist": data.watchlist_item is not None,
         }
         if "diretores" in cls.model_fields:
             flat["diretores"] = sorted(

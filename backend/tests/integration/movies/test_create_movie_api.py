@@ -49,6 +49,7 @@ async def test_create_movie_returns_the_movie_detail(client: httpx.AsyncClient) 
         "duracao_minutos": None,
         "url_poster": None,
         "generos": ["Drama", "History"],
+        "na_watchlist": False,
         "qtd_avaliacoes_usuarios": 0,
         "nota_media_usuarios": None,
         "estrelas_media": None,
