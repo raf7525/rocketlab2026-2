@@ -95,6 +95,23 @@ async def test_update_keeps_what_the_form_does_not_edit(
     assert [review["comentario"] for review in reviews] == ["Ótimo."]
 
 
+async def test_update_replaces_the_cast_when_it_is_sent(
+    client: httpx.AsyncClient, movie: DimMovie
+) -> None:
+    response = await client.put(
+        f"{MOVIES_URL}/{movie.sk_movie_id}",
+        json=movie_payload(elenco=["Emily Blunt", "cillian murphy"]),
+    )
+
+    assert response.json()["elenco"] == ["Cillian Murphy", "Emily Blunt"]
+
+
+async def test_update_can_clear_the_cast(client: httpx.AsyncClient, movie: DimMovie) -> None:
+    response = await client.put(f"{MOVIES_URL}/{movie.sk_movie_id}", json=movie_payload(elenco=[]))
+
+    assert response.json()["elenco"] == []
+
+
 async def test_update_keeps_writers_linked(
     client: httpx.AsyncClient,
     movie: DimMovie,

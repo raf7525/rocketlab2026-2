@@ -118,6 +118,44 @@ async def test_actor_with_the_same_name_is_not_taken_as_the_director(
 
 
 @pytest.mark.usefixtures("genres")
+async def test_create_movie_with_cast_lists_it_in_alphabetical_order(
+    client: httpx.AsyncClient,
+) -> None:
+    response = await client.post(
+        MOVIES_URL, json=movie_payload(elenco=["Emily Blunt", "Cillian Murphy", "emily blunt"])
+    )
+
+    assert response.status_code == 201
+    assert response.json()["elenco"] == ["Cillian Murphy", "Emily Blunt"]
+
+
+@pytest.mark.usefixtures("genres")
+async def test_existing_actor_is_reused_ignoring_case(
+    client: httpx.AsyncClient,
+    session: AsyncSession,
+    session_factory: async_sessionmaker[AsyncSession],
+) -> None:
+    session.add(DimPerson(nome_pessoa="Cillian Murphy", tipo_pessoa="Ator"))
+    await session.commit()
+
+    response = await client.post(MOVIES_URL, json=movie_payload(elenco=["cillian murphy"]))
+
+    assert response.json()["elenco"] == ["Cillian Murphy"]
+    # O ator reaproveitado e o diretor novo.
+    assert await count(session_factory, DimPerson) == 2
+
+
+@pytest.mark.usefixtures("genres")
+async def test_the_same_person_can_direct_and_act(client: httpx.AsyncClient) -> None:
+    response = await client.post(
+        MOVIES_URL, json=movie_payload(diretores=["Greta Gerwig"], elenco=["Greta Gerwig"])
+    )
+
+    assert response.json()["diretores"] == ["Greta Gerwig"]
+    assert response.json()["elenco"] == ["Greta Gerwig"]
+
+
+@pytest.mark.usefixtures("genres")
 async def test_genres_are_matched_ignoring_case(client: httpx.AsyncClient) -> None:
     response = await client.post(MOVIES_URL, json=movie_payload(generos=["science fiction"]))
 
@@ -148,7 +186,14 @@ async def test_unknown_genre_returns_422_and_nothing_is_saved(
 @pytest.mark.usefixtures("genres")
 @pytest.mark.parametrize(
     "changes",
-    [{"titulo": " "}, {"ano_lancamento": "2023"}, {"diretores": []}, {"generos": []}],
+    [
+        {"titulo": " "},
+        {"ano_lancamento": "2023"},
+        {"diretores": []},
+        {"generos": []},
+        {"elenco": [" "]},
+        {"elenco": ["a" * 256]},
+    ],
 )
 async def test_invalid_movie_returns_422_and_is_not_saved(
     client: httpx.AsyncClient,

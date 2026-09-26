@@ -3,7 +3,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.movies import repository
-from app.movies.models import DIRECTOR, DimGenre, DimMovie, DimPerson
+from app.movies.models import ACTOR, DIRECTOR, DimGenre, DimMovie, DimPerson, PersonType
 from app.movies.schemas import MovieCreate, MovieFilters, MovieSummary, MovieUpdate
 from app.shared.exceptions import BusinessRuleError, NotFoundError
 from app.shared.pagination import Page, PageParams
@@ -28,16 +28,18 @@ async def get_movie(session: AsyncSession, sk_movie_id: str) -> DimMovie:
 
 
 async def create_movie(session: AsyncSession, data: MovieCreate) -> DimMovie:
-    """Cadastra o filme; diretores que ainda não estão em `dim_people` entram como pessoas novas."""
+    """Cadastra o filme; diretores e atores que ainda não estão em `dim_people` entram como
+    pessoas novas."""
 
     genres = await _find_genres(session, data.generos)
-    directors = [await _find_or_create_director(session, nome) for nome in data.diretores]
+    directors = await _find_or_create_people(session, data.diretores, DIRECTOR)
+    cast = await _find_or_create_people(session, data.elenco, ACTOR)
     movie = DimMovie(
         titulo=data.titulo,
         ano_lancamento=data.ano_lancamento,
         sinopse=data.sinopse,
         genres=genres,
-        people=directors,
+        people=directors + cast,
     )
     session.add(movie)
     await session.commit()
@@ -48,11 +50,15 @@ async def create_movie(session: AsyncSession, data: MovieCreate) -> DimMovie:
 
 
 async def update_movie(session: AsyncSession, sk_movie_id: str, data: MovieUpdate) -> DimMovie:
-    """Substitui título, ano, sinopse, gêneros e diretores; o resto do filme continua igual."""
+    """Substitui título, ano, sinopse, gêneros, diretores e (se enviado) o elenco."""
 
     movie = await get_movie(session, sk_movie_id)
     genres = await _find_genres(session, data.generos)
-    directors = [await _find_or_create_director(session, nome) for nome in data.diretores]
+    replaced: dict[PersonType, list[DimPerson]] = {
+        DIRECTOR: await _find_or_create_people(session, data.diretores, DIRECTOR)
+    }
+    if data.elenco is not None:
+        replaced[ACTOR] = await _find_or_create_people(session, data.elenco, ACTOR)
 
     movie.titulo = data.titulo
     # Uma data de lançamento de outro ano contradiria o ano novo.
@@ -61,9 +67,9 @@ async def update_movie(session: AsyncSession, sk_movie_id: str, data: MovieUpdat
     movie.ano_lancamento = data.ano_lancamento
     movie.sinopse = data.sinopse
     movie.genres = genres
-    # Elenco e roteiristas continuam ligados ao filme; só a direção é trocada.
-    others = [person for person in movie.people if person.tipo_pessoa != DIRECTOR]
-    movie.people = others + directors
+    # Troca só os papéis enviados; roteiristas (e o elenco, se não veio) continuam ligados.
+    kept = [person for person in movie.people if person.tipo_pessoa not in replaced]
+    movie.people = kept + [person for people in replaced.values() for person in people]
     await session.commit()
 
     session.expunge(movie)
@@ -94,6 +100,13 @@ async def _find_genres(session: AsyncSession, names: list[str]) -> list[DimGenre
     return [by_name[name.casefold()] for name in names]
 
 
-async def _find_or_create_director(session: AsyncSession, nome: str) -> DimPerson:
-    director = await repository.find_person(session, nome, DIRECTOR)
-    return director or DimPerson(nome_pessoa=nome, tipo_pessoa=DIRECTOR)
+async def _find_or_create_people(
+    session: AsyncSession, names: list[str], tipo: PersonType
+) -> list[DimPerson]:
+    """As pessoas com esses nomes e papel, reaproveitando quem já está em `dim_people`."""
+
+    people: list[DimPerson] = []
+    for nome in names:
+        person = await repository.find_person(session, nome, tipo)
+        people.append(person or DimPerson(nome_pessoa=nome, tipo_pessoa=tipo))
+    return people

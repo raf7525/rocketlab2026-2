@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.movies.schemas import MovieCreate
+from app.movies.schemas import MovieCreate, MovieUpdate
 
 VALID_MOVIE = {
     "titulo": "Oppenheimer",
@@ -9,6 +9,7 @@ VALID_MOVIE = {
     "diretores": ["Christopher Nolan"],
     "generos": ["Drama", "History"],
     "sinopse": "A história de J. Robert Oppenheimer.",
+    "elenco": [],
 }
 
 
@@ -40,6 +41,21 @@ def test_repeated_directors_and_genres_count_once() -> None:
 
     assert movie.diretores == ["Lana Wachowski", "Lilly Wachowski"]
     assert movie.generos == ["Drama"]
+
+
+def test_cast_is_optional_trimmed_and_counts_each_name_once() -> None:
+    without_cast = {key: value for key, value in VALID_MOVIE.items() if key != "elenco"}
+
+    assert MovieCreate(**without_cast).elenco == []
+    assert MovieCreate(
+        **{**VALID_MOVIE, "elenco": [" Cillian Murphy ", "Emily Blunt", "cillian murphy"]}
+    ).elenco == ["Cillian Murphy", "Emily Blunt"]
+
+
+def test_update_without_cast_keeps_it_unset() -> None:
+    without_cast = {key: value for key, value in VALID_MOVIE.items() if key != "elenco"}
+
+    assert MovieUpdate(**without_cast).elenco is None
 
 
 @pytest.mark.parametrize("field", ["titulo", "ano_lancamento", "diretores", "generos"])

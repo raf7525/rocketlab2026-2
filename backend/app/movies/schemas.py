@@ -24,12 +24,16 @@ class MovieCreate(BaseModel):
     diretores: Annotated[list[Name], Field(min_length=1)]
     generos: Annotated[list[Name], Field(min_length=1)]
     sinopse: Annotated[str, StringConstraints(strip_whitespace=True, max_length=4000)] | None = None
+    elenco: list[Name] = []
+    """Atores e atrizes, opcional."""
 
-    @field_validator("diretores", "generos")
+    @field_validator("diretores", "generos", "elenco")
     @classmethod
-    def _count_each_name_once(cls, names: list[str]) -> list[str]:
+    def _count_each_name_once(cls, names: list[str] | None) -> list[str] | None:
         """Tira os nomes repetidos (sem diferenciar maiúsculas), mantendo a ordem."""
 
+        if names is None:
+            return None
         unique: dict[str, str] = {}
         for name in names:
             unique.setdefault(name.casefold(), name)
@@ -44,8 +48,11 @@ class MovieCreate(BaseModel):
 class MovieUpdate(MovieCreate):
     """Edição de um filme: os mesmos campos e regras do cadastro, e o envio substitui todos eles.
 
-    O que o formulário não mostra (pôster, duração, elenco, métricas, avaliações) fica como está.
+    Sem `elenco`, o elenco atual continua; com ele (mesmo vazio), o elenco é trocado. O que o
+    formulário não mostra (pôster, duração, roteiristas, métricas, avaliações) fica como está.
     """
+
+    elenco: list[Name] | None = None  # type: ignore[assignment]
 
 
 SearchText = Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)]
