@@ -103,6 +103,20 @@
   cursor: progress;
 }
 
+.skip {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.skip:hover {
+  color: var(--text-soft);
+}
+
 .success {
   font-size: 13px;
   color: var(--star);

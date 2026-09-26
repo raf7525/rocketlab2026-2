@@ -2,8 +2,18 @@ import { screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { makeMovieRow, makeReviewRow } from '../../../test/factories'
-import { seedDb } from '../../../test/mocks/db'
+import { db, seedDb } from '../../../test/mocks/db'
 import { renderApp } from '../../../test/utils'
+import { CATALOG_PAGE_SIZE } from '../api/moviesApi'
+
+type User = ReturnType<typeof renderApp>['user']
+
+async function publishReview(user: User) {
+  await user.type(screen.getByRole('textbox', { name: 'Seu nome' }), 'Rafael')
+  await user.click(screen.getByRole('radio', { name: '5 estrelas' }))
+  await user.type(screen.getByRole('textbox', { name: 'Resenha' }), 'Obra-prima.')
+  await user.click(screen.getByRole('button', { name: 'Publicar avaliação' }))
+}
 
 const movie = makeMovieRow({
   sk_movie_id: 'blue-beetle',
@@ -89,20 +99,53 @@ describe('MovieDetailPage', () => {
     )
   })
 
-  it('publicar uma avaliação atualiza a lista e a média', async () => {
+  it('depois de avaliar, volta para a página do catálogo de onde abriu o filme', async () => {
+    seedDb({
+      movies: [
+        ...Array.from({ length: CATALOG_PAGE_SIZE }, () => makeMovieRow()),
+        movie,
+      ],
+    })
+    const { user, router } = renderApp('/?pagina=2')
+
+    await user.click(await screen.findByRole('link', { name: 'Blue Beetle' }))
+    await screen.findByRole('heading', { level: 1, name: 'Blue Beetle' })
+    await publishReview(user)
+
+    expect(await screen.findByRole('region', { name: 'Catálogo' })).toBeInTheDocument()
+    expect(router.state.location.search).toBe('?pagina=2')
+    expect(db.reviews).toEqual([
+      expect.objectContaining({ sk_movie_id: 'blue-beetle', nota: 10, comentario: 'Obra-prima.' }),
+    ])
+  })
+
+  it('volta ao catálogo depois de avaliar um filme aberto pelas reviews populares', async () => {
+    seedDb({
+      movies: [movie],
+      reviews: [makeReviewRow({ sk_movie_id: 'blue-beetle', curtidas: 3 })],
+    })
+    const { user, router } = renderApp('/')
+
+    const popular = await screen.findByRole('region', { name: 'Reviews populares' })
+    await user.click(await within(popular).findByRole('link', { name: 'Blue Beetle' }))
+    await screen.findByRole('heading', { level: 1, name: 'Blue Beetle' })
+    await publishReview(user)
+
+    expect(await screen.findByRole('region', { name: 'Catálogo' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/')
+    expect(db.reviews).toHaveLength(2)
+  })
+
+  it('aberto por link direto, volta ao início do catálogo depois de avaliar', async () => {
     seedDb({ movies: [movie] })
-    const { user } = renderApp('/filmes/blue-beetle')
-    expect(await screen.findByText('Ninguém avaliou este filme ainda.')).toBeInTheDocument()
+    const { user, router } = renderApp('/filmes/blue-beetle')
+    await screen.findByRole('heading', { level: 1, name: 'Blue Beetle' })
 
-    await user.type(screen.getByRole('textbox', { name: 'Seu nome' }), 'Rafael')
-    await user.click(screen.getByRole('radio', { name: '5 estrelas' }))
-    await user.type(screen.getByRole('textbox', { name: 'Resenha' }), 'Obra-prima.')
-    await user.click(screen.getByRole('button', { name: 'Publicar avaliação' }))
+    await publishReview(user)
 
-    const section = screen.getByRole('region', { name: 'Avaliações' })
-    expect(await within(section).findByText('Obra-prima.')).toBeInTheDocument()
-    expect(await screen.findByRole('img', { name: 'Nota média 5,0 de 5' })).toBeInTheDocument()
-    expect(screen.getByText('1 avaliação')).toBeInTheDocument()
+    expect(await screen.findByRole('region', { name: 'Catálogo' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/')
+    expect(db.reviews).toHaveLength(1)
   })
 
   it('avisa quando o filme não existe', async () => {

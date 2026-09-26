@@ -6,6 +6,7 @@ import { makeMovieRow } from '../../../test/factories'
 import { db, seedDb } from '../../../test/mocks/db'
 import { server } from '../../../test/mocks/server'
 import { renderApp } from '../../../test/utils'
+import { CATALOG_PAGE_SIZE } from '../api/moviesApi'
 
 const GENRES = ['Action', 'Drama', 'Science Fiction']
 
@@ -27,6 +28,10 @@ async function fillRequiredFields(user: User) {
   await user.click(screen.getByRole('checkbox', { name: 'Science Fiction' }))
 }
 
+function answerWatched(user: User, answer: 'Sim, já assisti' | 'Ainda não') {
+  return user.click(screen.getByRole('radio', { name: answer }))
+}
+
 function submit(user: User) {
   return user.click(screen.getByRole('button', { name: 'Cadastrar filme' }))
 }
@@ -41,19 +46,22 @@ describe('NewMoviePage', () => {
     expect(within(genres).getByRole('checkbox', { name: 'Drama' })).not.toBeChecked()
   })
 
-  it('cadastra o filme e abre a página dele', async () => {
-    const { user } = setup()
+  it('cadastra o filme de quem ainda não assistiu e volta ao catálogo', async () => {
+    seedDb({ genres: GENRES, movies: [makeMovieRow({ titulo: 'Blue Beetle' })] })
+    const { user } = renderApp('/')
 
+    await user.click(await screen.findByRole('link', { name: 'Adicionar filme' }))
     await fillRequiredFields(user)
     await user.type(screen.getByRole('textbox', { name: /Sinopse/ }), 'Um hacker descobre a verdade.')
+    await answerWatched(user, 'Ainda não')
     await submit(user)
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Matrix' })).toBeInTheDocument()
-    expect(screen.getByText('Lana Wachowski e Lilly Wachowski')).toBeInTheDocument()
-    expect(screen.getByText('1999')).toBeInTheDocument()
-    expect(screen.getByText('Science Fiction')).toBeInTheDocument()
-    expect(screen.getByText('Um hacker descobre a verdade.')).toBeInTheDocument()
+    const catalog = await screen.findByRole('region', { name: 'Catálogo' })
+    expect(await within(catalog).findByText('2 filmes')).toBeInTheDocument()
+    expect(within(catalog).getByRole('link', { name: 'Matrix' })).toBeInTheDocument()
+    expect(screen.queryByRole('form', { name: 'Avaliar este filme' })).not.toBeInTheDocument()
     expect(db.movies).toEqual([
+      expect.objectContaining({ titulo: 'Blue Beetle' }),
       expect.objectContaining({
         titulo: 'Matrix',
         ano_lancamento: 1999,
@@ -64,22 +72,70 @@ describe('NewMoviePage', () => {
     ])
   })
 
-  it('o filme cadastrado aparece no catálogo', async () => {
-    seedDb({ genres: GENRES, movies: [makeMovieRow({ titulo: 'Blue Beetle' })] })
+  it('cadastra o filme de quem já assistiu e abre a avaliação dele', async () => {
+    const { user } = setup()
+
+    await fillRequiredFields(user)
+    await answerWatched(user, 'Sim, já assisti')
+    await submit(user)
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Matrix' })).toBeInTheDocument()
+    expect(screen.getByRole('form', { name: 'Avaliar este filme' })).toBeInTheDocument()
+    expect(db.movies).toEqual([expect.objectContaining({ titulo: 'Matrix' })])
+  })
+
+  it('depois de avaliar, volta para a página do catálogo de onde saiu', async () => {
+    seedDb({
+      genres: GENRES,
+      movies: Array.from({ length: CATALOG_PAGE_SIZE + 1 }, () => makeMovieRow()),
+    })
+    const { user, router } = renderApp('/?pagina=2')
+
+    await user.click(await screen.findByRole('link', { name: 'Adicionar filme' }))
+    await fillRequiredFields(user)
+    await answerWatched(user, 'Sim, já assisti')
+    await submit(user)
+    await screen.findByRole('form', { name: 'Avaliar este filme' })
+    await user.type(screen.getByRole('textbox', { name: 'Seu nome' }), 'Rafael')
+    await user.click(screen.getByRole('radio', { name: '4 estrelas' }))
+    await user.type(screen.getByRole('textbox', { name: 'Resenha' }), 'Clássico.')
+    await user.click(screen.getByRole('button', { name: 'Publicar avaliação' }))
+
+    expect(await screen.findByRole('region', { name: 'Catálogo' })).toBeInTheDocument()
+    expect(router.state.location.search).toBe('?pagina=2')
+    const matrix = db.movies.find((movie) => movie.titulo === 'Matrix')
+    expect(db.reviews).toEqual([
+      expect.objectContaining({ sk_movie_id: matrix?.sk_movie_id, nome: 'Rafael', nota: 8 }),
+    ])
+  })
+
+  it('pula a avaliação e volta ao catálogo', async () => {
+    seedDb({ genres: GENRES })
     const { user } = renderApp('/')
 
     await user.click(await screen.findByRole('link', { name: 'Adicionar filme' }))
     await fillRequiredFields(user)
+    await answerWatched(user, 'Sim, já assisti')
     await submit(user)
-    await screen.findByRole('heading', { level: 1, name: 'Matrix' })
-    await user.click(screen.getByRole('link', { name: /RocketLab/ }))
+    await user.click(await screen.findByRole('button', { name: 'Agora não' }))
 
-    const catalog = await screen.findByRole('region', { name: 'Catálogo' })
-    expect(await within(catalog).findByRole('link', { name: 'Matrix' })).toBeInTheDocument()
-    expect(within(catalog).getByText('2 filmes')).toBeInTheDocument()
+    expect(await screen.findByRole('region', { name: 'Catálogo' })).toBeInTheDocument()
+    expect(db.movies).toHaveLength(1)
+    expect(db.reviews).toHaveLength(0)
   })
 
-  it('não envia sem título, ano, direção e gênero', async () => {
+  it('volta ao início do catálogo quando o cadastro não foi aberto por ele', async () => {
+    const { user, router } = setup()
+
+    await fillRequiredFields(user)
+    await answerWatched(user, 'Ainda não')
+    await submit(user)
+
+    expect(await screen.findByRole('region', { name: 'Catálogo' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/')
+  })
+
+  it('não envia sem título, ano, direção, gênero e sem dizer se já assistiu', async () => {
     const { user } = setup()
     await screen.findByRole('checkbox', { name: 'Action' })
 
@@ -89,13 +145,26 @@ describe('NewMoviePage', () => {
     expect(screen.getByText('Informe o ano de lançamento.')).toBeInTheDocument()
     expect(screen.getByText('Informe quem dirigiu o filme.')).toBeInTheDocument()
     expect(screen.getByText('Escolha pelo menos um gênero.')).toBeInTheDocument()
+    expect(screen.getByText('Diga se você já assistiu ao filme.')).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Título' })).toHaveFocus()
+    expect(db.movies).toHaveLength(0)
+  })
+
+  it('pede a resposta sobre ter assistido quando só ela falta', async () => {
+    const { user } = setup()
+    await fillRequiredFields(user)
+
+    await submit(user)
+
+    expect(screen.getByText('Diga se você já assistiu ao filme.')).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Sim, já assisti' })).toHaveFocus()
     expect(db.movies).toHaveLength(0)
   })
 
   it('recusa um ano fora do intervalo aceito', async () => {
     const { user } = setup()
     await fillRequiredFields(user)
+    await answerWatched(user, 'Ainda não')
     const year = screen.getByRole('textbox', { name: 'Ano de lançamento' })
 
     await user.clear(year)
@@ -116,6 +185,7 @@ describe('NewMoviePage', () => {
     const { user } = setup()
 
     await fillRequiredFields(user)
+    await answerWatched(user, 'Ainda não')
     await submit(user)
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Gênero desconhecido: Action.')

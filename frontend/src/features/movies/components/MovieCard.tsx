@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { cx } from '../../../shared/lib/cx'
 import { formatDuration, pluralize } from '../../../shared/lib/format'
 import { tmdbImage } from '../../../shared/lib/images'
+import { useCatalogReturnState } from '../hooks/useBackToCatalog'
 import type { MovieSummary } from '../types/movie'
 import { AverageRating } from './AverageRating'
 import { GenreList } from './GenreList'
@@ -20,6 +21,7 @@ export function MovieCard({ movie }: { movie: MovieSummary }) {
   const id = useId()
   const cardRef = useRef<HTMLElement>(null)
   const [popoverSide, setPopoverSide] = useState<'right' | 'left' | null>(null)
+  const catalogReturn = useCatalogReturnState()
 
   function openPopover() {
     const card = cardRef.current?.getBoundingClientRect()
@@ -51,6 +53,7 @@ export function MovieCard({ movie }: { movie: MovieSummary }) {
     >
       <Link
         to={`/filmes/${movie.sk_movie_id}`}
+        state={catalogReturn}
         className={styles.link}
         aria-labelledby={`${id}-titulo`}
         aria-describedby={`${id}-detalhes`}

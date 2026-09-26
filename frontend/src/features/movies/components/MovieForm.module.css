@@ -145,6 +145,18 @@
   outline-offset: 2px;
 }
 
+/* Sim ou não: as mesmas etiquetas dos gêneros, só que uma exclui a outra. */
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.option {
+  composes: genre;
+  text-transform: none;
+}
+
 .loadError {
   display: flex;
   flex-wrap: wrap;

@@ -4,6 +4,7 @@ import { Avatar } from '../../../shared/components/Avatar'
 import { StarRating } from '../../../shared/components/StarRating'
 import { cx } from '../../../shared/lib/cx'
 import { tmdbImage } from '../../../shared/lib/images'
+import { useCatalogReturnState } from '../../movies/hooks/useBackToCatalog'
 import type { MovieReview, ReviewedMovie } from '../types/review'
 import { LikeButton } from './LikeButton'
 import styles from './ReviewCard.module.css'
@@ -17,12 +18,13 @@ type Props = {
 /** Review no formato do Letterboxd: filme, autor com a nota, resenha e curtidas. */
 export function ReviewCard({ review, movie }: Props) {
   const movieUrl = movie && `/filmes/${movie.sk_movie_id}`
+  const catalogReturn = useCatalogReturnState()
 
   return (
     <article className={cx(styles.review, movie && styles.withPoster)}>
       {movie && movieUrl && (
         // O título abaixo já leva ao filme; o pôster é um atalho só para o mouse.
-        <Link to={movieUrl} tabIndex={-1} aria-hidden="true" className={styles.poster}>
+        <Link to={movieUrl} state={catalogReturn} tabIndex={-1} aria-hidden="true" className={styles.poster}>
           {movie.url_poster && (
             <img src={tmdbImage(movie.url_poster, 'w154')} alt="" loading="lazy" />
           )}
@@ -32,7 +34,7 @@ export function ReviewCard({ review, movie }: Props) {
       <div className={styles.body}>
         {movie && movieUrl && (
           <h3 className={styles.movie}>
-            <Link to={movieUrl} className={styles.movieTitle}>
+            <Link to={movieUrl} state={catalogReturn} className={styles.movieTitle}>
               {movie.titulo}
             </Link>
             {movie.ano_lancamento ? (

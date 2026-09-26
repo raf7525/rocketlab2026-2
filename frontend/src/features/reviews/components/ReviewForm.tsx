@@ -14,7 +14,15 @@ const FIELDS = ['nome', 'nota', 'comentario'] as const
 type Field = (typeof FIELDS)[number]
 type Errors = Partial<Record<Field, string>>
 
-export function ReviewForm({ movieId }: { movieId: string }) {
+type Props = {
+  movieId: string
+  /** Chamado depois que a API aceita a avaliação. */
+  onPublished?: () => void
+  /** Se informado, mostra um botão para deixar a avaliação para depois. */
+  onSkip?: () => void
+}
+
+export function ReviewForm({ movieId, onPublished, onSkip }: Props) {
   const id = useId()
   const createReview = useCreateReview(movieId)
   const [nome, setNome] = useState('')
@@ -48,6 +56,7 @@ export function ReviewForm({ movieId }: { movieId: string }) {
         setNome('')
         setNota(null)
         setComentario('')
+        onPublished?.()
       },
     })
   }
@@ -131,6 +140,11 @@ export function ReviewForm({ movieId }: { movieId: string }) {
           <button type="submit" aria-disabled={createReview.isPending} className={styles.submit}>
             {createReview.isPending ? 'Publicando…' : 'Publicar avaliação'}
           </button>
+          {onSkip && (
+            <button type="button" onClick={onSkip} className={styles.skip}>
+              Agora não
+            </button>
+          )}
           {/* A região de status existe desde o início para o leitor de tela anunciar a mudança. */}
           <p role="status" className={styles.success}>
             {createReview.isSuccess && 'Avaliação publicada!'}

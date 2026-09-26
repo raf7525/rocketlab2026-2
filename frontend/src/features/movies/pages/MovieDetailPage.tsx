@@ -8,12 +8,14 @@ import { MovieReviews } from '../../reviews/components/MovieReviews'
 import { ReviewForm } from '../../reviews/components/ReviewForm'
 import { AverageRating } from '../components/AverageRating'
 import { GenreList } from '../components/GenreList'
+import { useBackToCatalog } from '../hooks/useBackToCatalog'
 import { useMovie } from '../hooks/useMovies'
 import styles from './MovieDetailPage.module.css'
 
 export function MovieDetailPage() {
   const { movieId = '' } = useParams()
   const movie = useMovie(movieId)
+  const backToCatalog = useBackToCatalog()
 
   if (movie.isPending) {
     return <p className={styles.loading}>Carregando filme…</p>
@@ -79,7 +81,8 @@ export function MovieDetailPage() {
 
           {data.sinopse && <p className={styles.synopsis}>{data.sinopse}</p>}
 
-          <ReviewForm movieId={data.sk_movie_id} />
+          {/* Depois de avaliar, a pessoa volta para onde estava no catálogo. */}
+          <ReviewForm movieId={data.sk_movie_id} onPublished={backToCatalog} />
           <MovieReviews movieId={data.sk_movie_id} />
         </div>
       </div>
