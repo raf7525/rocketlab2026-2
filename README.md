@@ -52,7 +52,7 @@ No Windows, troque por `.venv\Scripts\...`.
 ```bash
 cd backend
 python3 -m venv .venv
-.venv/bin/pip install -e ".[dev]"
+.venv/bin/pip install -r requirements.txt   # ou: .venv/bin/pip install -e ".[dev]"
 cp .env.example .env
 .venv/bin/alembic upgrade head          # cria as tabelas em backend/rocketlab.db
 ```
