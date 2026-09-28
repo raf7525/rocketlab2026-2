@@ -241,7 +241,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
     # Como no Alembic: a carga usa o driver síncrono sobre o mesmo arquivo da API.
-    database_url = get_settings().database_url.replace("+aiosqlite", "")
+    database_url = get_settings().sync_database_url
     engine = create_engine(database_url)
     enable_sqlite_foreign_keys(engine)
     started = time.perf_counter()

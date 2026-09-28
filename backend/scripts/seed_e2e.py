@@ -23,12 +23,15 @@ from app.core.config import get_settings
 from app.db.base import Base
 from app.db.session import enable_sqlite_foreign_keys
 from app.movies.models import (
+    ACTOR,
+    DIRECTOR,
     DimGenre,
     DimMovie,
     DimPerson,
     DimReview,
     FactMoviePerformance,
     MovieReview,
+    PersonType,
 )
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
@@ -127,16 +130,16 @@ def seed(database: Path, media_dir: Path) -> None:
     if database == APP_DATABASE:
         raise SystemExit("Recusado: este é o banco da aplicação, não o dos testes.")
 
+    # O Alembic lê o banco das configurações da aplicação.
     settings = get_settings()
     settings.database_url = f"sqlite+aiosqlite:///{database}"
-    settings.media_dir = media_dir
     database.parent.mkdir(parents=True, exist_ok=True)
     command.upgrade(Config(str(BACKEND_DIR / "alembic.ini")), "head")
 
     shutil.rmtree(media_dir, ignore_errors=True)
     media_dir.mkdir(parents=True)
 
-    engine = create_engine(f"sqlite:///{database}")
+    engine = create_engine(settings.sync_database_url)
     enable_sqlite_foreign_keys(engine)
     with Session(engine) as session:
         for table in reversed(Base.metadata.sorted_tables):
@@ -148,9 +151,9 @@ def seed(database: Path, media_dir: Path) -> None:
 
 def _build_movies() -> list[DimMovie]:
     genres = {name: DimGenre(nome_genero=name) for name in GENRES}
-    people: dict[tuple[str, str], DimPerson] = {}
+    people: dict[tuple[str, PersonType], DimPerson] = {}
 
-    def person(nome: str, tipo: str) -> DimPerson:
+    def person(nome: str, tipo: PersonType) -> DimPerson:
         return people.setdefault((nome, tipo), DimPerson(nome_pessoa=nome, tipo_pessoa=tipo))
 
     movies = []
@@ -165,8 +168,8 @@ def _build_movies() -> list[DimMovie]:
                 status_filme=data.status,
                 sinopse=data.sinopse,
                 genres=[genres[name] for name in data.generos],
-                people=[person(nome, "Diretor") for nome in data.diretores]
-                + [person(nome, "Ator") for nome in data.elenco],
+                people=[person(nome, DIRECTOR) for nome in data.diretores]
+                + [person(nome, ACTOR) for nome in data.elenco],
                 performance=FactMoviePerformance(popularidade=data.popularidade),
                 reviews=[
                     MovieReview(nome=nome, nota=nota, comentario=comentario)

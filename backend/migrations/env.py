@@ -16,8 +16,7 @@ target_metadata = Base.metadata
 
 # A aplicação usa a variante assíncrona do driver SQLite; o Alembic executa
 # DDL de forma síncrona sobre o mesmo arquivo de banco.
-database_url = get_settings().database_url.replace("+aiosqlite", "")
-config.set_main_option("sqlalchemy.url", database_url)
+config.set_main_option("sqlalchemy.url", get_settings().sync_database_url)
 
 
 def run_migrations_offline() -> None:

@@ -121,6 +121,16 @@ async def test_update_can_clear_the_cast(client: httpx.AsyncClient, movie: DimMo
     assert response.json()["elenco"] == []
 
 
+async def test_update_with_null_cast_clears_it(client: httpx.AsyncClient, movie: DimMovie) -> None:
+    """Como os outros opcionais: vindo, mesmo nulo, o elenco é trocado."""
+
+    response = await client.put(
+        f"{MOVIES_URL}/{movie.sk_movie_id}", json=movie_payload(elenco=None)
+    )
+
+    assert response.json()["elenco"] == []
+
+
 async def test_update_changes_duration_status_and_poster(
     client: httpx.AsyncClient, movie: DimMovie
 ) -> None:

@@ -26,7 +26,7 @@ def enable_sqlite_foreign_keys(engine: AsyncEngine | Engine) -> None:
         cursor.close()
 
 
-engine = create_async_engine(settings.database_url, echo=settings.environment == "local")
+engine = create_async_engine(settings.database_url)
 enable_sqlite_foreign_keys(engine)
 AsyncSessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False, autoflush=False)
 

@@ -5,8 +5,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Configurações carregadas de variáveis de ambiente ou do arquivo .env."""
-
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     project_name: str = "RocketLab API"
@@ -18,6 +16,12 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     # Pasta das imagens enviadas (pôsteres), relativa a onde a API é iniciada, como o banco.
     media_dir: Path = Path("media")
+
+    @property
+    def sync_database_url(self) -> str:
+        """O mesmo banco pelo driver síncrono, que o Alembic e os scripts de carga usam."""
+
+        return self.database_url.replace("+aiosqlite", "")
 
 
 @lru_cache

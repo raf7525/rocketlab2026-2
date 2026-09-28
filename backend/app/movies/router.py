@@ -7,7 +7,7 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Query, Response, status
+from fastapi import APIRouter, Query, status
 
 from app.api.deps import SessionDep
 from app.movies import service
@@ -50,11 +50,10 @@ async def update_movie(sk_movie_id: str, data: MovieUpdate, session: SessionDep)
 
 
 @router.delete("/{sk_movie_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_movie(sk_movie_id: str, session: SessionDep) -> Response:
+async def delete_movie(sk_movie_id: str, session: SessionDep) -> None:
     """Remove o filme e tudo o que é só dele (avaliações, métricas, ligações)."""
 
     await service.delete_movie(session, sk_movie_id)
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @genres_router.get("", response_model=list[str])

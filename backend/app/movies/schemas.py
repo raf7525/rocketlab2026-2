@@ -5,7 +5,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field, StringConstraints, field_validator, model_validator
 
-from app.movies.models import ACTOR, DIRECTOR, DimMovie, MovieStatus
+from app.movies.models import ACTOR, DIRECTOR, DimMovie, MovieStatus, PersonType
 from app.posters.storage import is_uploaded_poster
 from app.shared.pagination import PageParams
 from app.shared.ratings import RatingSummary
@@ -64,13 +64,7 @@ class MovieCreate(BaseModel):
 
 
 class MovieUpdate(MovieCreate):
-    """Edição de um filme: os mesmos campos e regras do cadastro, e o envio substitui todos eles.
-
-    Campos opcionais que não vêm (`elenco`, `duracao_minutos`, `status_filme`, `url_poster`)
-    continuam como estão; vindo, mesmo vazios ou nulos, são trocados. O que o formulário não
-    mostra (roteiristas, métricas, avaliações) nunca muda.
-    """
-
+    
     elenco: list[Name] | None = None  # type: ignore[assignment]
 
 
@@ -123,35 +117,24 @@ class MovieSummary(RatingSummary):
     @model_validator(mode="before")
     @classmethod
     def _flatten_movie(cls, data: object) -> object:
-        """Aceita um `DimMovie` com `genres`, `reviews_summary` e `watchlist_item` já carregados.
+        """Aceita um `DimMovie` com `genres`, `reviews_summary` e `watchlist_item` já carregados."""
 
-        O detalhe (`MovieDetail`) também precisa de `people`, para listar diretores e elenco.
-        """
+        return cls._fields_from_movie(data) if isinstance(data, DimMovie) else data
 
-        if not isinstance(data, DimMovie):
-            return data
-        summary = data.reviews_summary
-        flat = {
-            **{name: getattr(data, name) for name in cls.model_fields if hasattr(DimMovie, name)},
-            "generos": [genre.nome_genero for genre in data.genres],
+    @classmethod
+    def _fields_from_movie(cls, movie: DimMovie) -> dict[str, object]:
+        summary = movie.reviews_summary
+        return {
+            **{name: getattr(movie, name) for name in cls.model_fields if hasattr(DimMovie, name)},
+            "generos": [genre.nome_genero for genre in movie.genres],
             "qtd_avaliacoes_usuarios": summary.qtd_avaliacoes_usuarios if summary else 0,
             "nota_media_usuarios": summary.nota_media_usuarios if summary else None,
-            "na_watchlist": data.watchlist_item is not None,
+            "na_watchlist": movie.watchlist_item is not None,
         }
-        if "diretores" in cls.model_fields:
-            flat["diretores"] = sorted(
-                person.nome_pessoa for person in data.people if person.tipo_pessoa == DIRECTOR
-            )
-        if "elenco" in cls.model_fields:
-            # O CSV não traz a ordem dos créditos; a alfabética é a única que não engana.
-            flat["elenco"] = sorted(
-                person.nome_pessoa for person in data.people if person.tipo_pessoa == ACTOR
-            )
-        return flat
 
 
 class MovieDetail(MovieSummary):
-    """Filme com os dados da página de detalhe."""
+    """Filme com os dados da página de detalhe; o `DimMovie` precisa vir também com `people`."""
 
     data_lancamento: date | None
     status_filme: str | None
@@ -159,3 +142,18 @@ class MovieDetail(MovieSummary):
     url_backdrop: str | None
     diretores: list[str]
     elenco: list[str]
+
+    @classmethod
+    def _fields_from_movie(cls, movie: DimMovie) -> dict[str, object]:
+        return {
+            **super()._fields_from_movie(movie),
+            "diretores": _names(movie, DIRECTOR),
+            "elenco": _names(movie, ACTOR),
+        }
+
+
+def _names(movie: DimMovie, tipo: PersonType) -> list[str]:
+    """As pessoas do filme nesse papel, em ordem alfabética: o CSV não traz a ordem dos créditos,
+    e a alfabética é a única que não engana."""
+
+    return sorted(person.nome_pessoa for person in movie.people if person.tipo_pessoa == tipo)

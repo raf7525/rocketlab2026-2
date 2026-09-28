@@ -1,6 +1,7 @@
 """Consultas da watchlist."""
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
+from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.movies.models import DimMovie, WatchlistItem
@@ -25,5 +26,11 @@ async def list_movies(session: AsyncSession, offset: int, limit: int) -> list[Di
     return list(result)
 
 
-async def get_item(session: AsyncSession, sk_movie_id: str) -> WatchlistItem | None:
-    return await session.get(WatchlistItem, sk_movie_id)
+async def add_item(session: AsyncSession, sk_movie_id: str) -> None:
+    await session.execute(
+        insert(WatchlistItem).values(sk_movie_id=sk_movie_id).on_conflict_do_nothing()
+    )
+
+
+async def remove_item(session: AsyncSession, sk_movie_id: str) -> None:
+    await session.execute(delete(WatchlistItem).where(WatchlistItem.sk_movie_id == sk_movie_id))

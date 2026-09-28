@@ -35,7 +35,7 @@ def _filtered(query: Select, filters: MovieFilters) -> Select:
             DimMovie.sk_movie_id.in_(
                 select(bridge_movie_genre.c.sk_movie_id)
                 .join(DimGenre)
-                .where(func.lower(DimGenre.nome_genero) == filters.genero.lower())
+                .where(func.lower(DimGenre.nome_genero) == func.lower(filters.genero))
             )
         )
     if filters.status:
@@ -78,6 +78,10 @@ async def list_movies(
         .limit(limit)
     )
     return list(result)
+
+
+async def movie_exists(session: AsyncSession, sk_movie_id: str) -> bool:
+    return await session.get(DimMovie, sk_movie_id) is not None
 
 
 async def get_movie(session: AsyncSession, sk_movie_id: str) -> DimMovie | None:

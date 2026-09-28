@@ -1,13 +1,7 @@
-"""Modelo ORM do catálogo de filmes do RocketLab 2026.2.
-
-O domínio foi organizado como esquema estrela para suportar consultas
-analíticas, mantendo relações de navegação úteis para a futura API.
-"""
-
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from hashlib import sha256
-from typing import Literal
+from typing import Literal, get_args
 from uuid import uuid4
 
 from sqlalchemy import (
@@ -176,11 +170,10 @@ class DimCompany(Base):
 
 
 # Os únicos valores de `status_filme` que aparecem nos CSVs.
-MOVIE_STATUSES: tuple[str, ...] = ("Lançado", "Pós-Produção", "Em Produção", "Planejado")
 MovieStatus = Literal["Lançado", "Pós-Produção", "Em Produção", "Planejado"]
 
-PERSON_TYPES: tuple[str, ...] = ("Ator", "Diretor", "Roteirista")
 PersonType = Literal["Ator", "Diretor", "Roteirista"]
+PERSON_TYPES: tuple[PersonType, ...] = get_args(PersonType)
 DIRECTOR: PersonType = "Diretor"
 ACTOR: PersonType = "Ator"
 

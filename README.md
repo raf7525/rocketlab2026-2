@@ -201,9 +201,9 @@ Os erros seguem o padrão do FastAPI: `404` com `{"detail": "Filme não encontra
 │   │   ├── api/v1/       # junta os routers de cada domínio
 │   │   ├── core/         # configurações (.env) e logging
 │   │   ├── db/           # Base ORM, engine e sessões
-│   │   ├── movies/       # catálogo: models, schemas, router, service, repository
+│   │   ├── movies/       # catálogo, e os modelos ORM de todas as tabelas (models.py)
 │   │   ├── posters/      # envio e leitura das imagens de pôster
-│   │   ├── reviews/      # avaliações e curtidas, com a mesma divisão
+│   │   ├── reviews/      # avaliações e curtidas
 │   │   ├── watchlist/    # filmes guardados para assistir depois
 │   │   └── shared/       # paginação, escala de notas e erros de negócio
 │   ├── migrations/       # revisões do Alembic
@@ -228,6 +228,9 @@ Cada domínio do backend separa as responsabilidades em camadas:
 - `schemas.py` valida a entrada e formata a saída;
 - `service.py` aplica as regras de negócio e grava no banco;
 - `repository.py` faz as consultas.
+
+Os modelos ORM ficam todos em `movies/models.py`. O banco é um esquema estrela em volta de
+`dim_movies`, e todas as tabelas, inclusive as de avaliações e da watchlist, apontam para o filme.
 
 ## Banco de dados
 

@@ -1,14 +1,10 @@
 """Consultas ao banco usadas pelo domínio de avaliações de filmes."""
 
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from app.movies.models import DimMovie, DimReview, MovieReview
-
-
-async def movie_exists(session: AsyncSession, sk_movie_id: str) -> bool:
-    return await session.get(DimMovie, sk_movie_id) is not None
+from app.movies.models import DimReview, MovieReview
 
 
 async def list_reviews(session: AsyncSession, sk_movie_id: str) -> list[MovieReview]:
@@ -28,6 +24,16 @@ async def get_review(
             MovieReview.sk_movie_review_id == sk_movie_review_id,
             MovieReview.sk_movie_id == sk_movie_id,
         )
+    )
+
+
+async def change_likes(session: AsyncSession, sk_movie_review_id: str, change: int) -> None:
+    new_count = MovieReview.curtidas + change
+    await session.execute(
+        update(MovieReview)
+        .where(MovieReview.sk_movie_review_id == sk_movie_review_id)
+        .values(curtidas=case((new_count < 0, 0), else_=new_count))
+        .execution_options(synchronize_session=False)
     )
 
 

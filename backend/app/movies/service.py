@@ -9,6 +9,8 @@ from app.posters import storage
 from app.shared.exceptions import BusinessRuleError, NotFoundError
 from app.shared.pagination import Page, PageParams
 
+MOVIE_NOT_FOUND = "Filme não encontrado."
+
 
 async def list_movies(
     session: AsyncSession, filters: MovieFilters, params: PageParams
@@ -24,8 +26,15 @@ async def list_movies(
 async def get_movie(session: AsyncSession, sk_movie_id: str) -> DimMovie:
     movie = await repository.get_movie(session, sk_movie_id)
     if movie is None:
-        raise NotFoundError("Filme não encontrado.")
+        raise NotFoundError(MOVIE_NOT_FOUND)
     return movie
+
+
+async def ensure_movie_exists(session: AsyncSession, sk_movie_id: str) -> None:
+    """Recusa com 404 o que depende de um filme que não existe (avaliações, watchlist)."""
+
+    if not await repository.movie_exists(session, sk_movie_id):
+        raise NotFoundError(MOVIE_NOT_FOUND)
 
 
 async def create_movie(session: AsyncSession, data: MovieCreate) -> DimMovie:
@@ -61,8 +70,8 @@ async def update_movie(session: AsyncSession, sk_movie_id: str, data: MovieUpdat
     replaced: dict[PersonType, list[DimPerson]] = {
         DIRECTOR: await _find_or_create_people(session, data.diretores, DIRECTOR)
     }
-    if data.elenco is not None:
-        replaced[ACTOR] = await _find_or_create_people(session, data.elenco, ACTOR)
+    if "elenco" in data.model_fields_set:
+        replaced[ACTOR] = await _find_or_create_people(session, data.elenco or [], ACTOR)
 
     movie.titulo = data.titulo
     # Uma data de lançamento de outro ano contradiria o ano novo.

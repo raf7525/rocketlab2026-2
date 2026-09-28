@@ -3,6 +3,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.movies.models import DimReview, MovieReview
+from app.movies.service import ensure_movie_exists
 from app.reviews import repository
 from app.reviews.schemas import MovieReviewCreate
 from app.shared.exceptions import NotFoundError
@@ -13,7 +14,7 @@ async def create_review(
 ) -> MovieReview:
     """Registra a avaliação e atualiza o resumo (quantidade e média) do filme."""
 
-    await _ensure_movie_exists(session, sk_movie_id)
+    await ensure_movie_exists(session, sk_movie_id)
 
     review = MovieReview(sk_movie_id=sk_movie_id, **data.model_dump())
     session.add(review)
@@ -24,12 +25,12 @@ async def create_review(
 
 
 async def list_reviews(session: AsyncSession, sk_movie_id: str) -> list[MovieReview]:
-    await _ensure_movie_exists(session, sk_movie_id)
+    await ensure_movie_exists(session, sk_movie_id)
     return await repository.list_reviews(session, sk_movie_id)
 
 
 async def get_summary(session: AsyncSession, sk_movie_id: str) -> DimReview | None:
-    await _ensure_movie_exists(session, sk_movie_id)
+    await ensure_movie_exists(session, sk_movie_id)
     return await repository.get_summary(session, sk_movie_id)
 
 
@@ -54,19 +55,15 @@ async def list_popular_reviews(session: AsyncSession, limit: int) -> list[MovieR
 async def _change_likes(
     session: AsyncSession, sk_movie_id: str, sk_movie_review_id: str, change: int
 ) -> MovieReview:
-    await _ensure_movie_exists(session, sk_movie_id)
+    await ensure_movie_exists(session, sk_movie_id)
     review = await repository.get_review(session, sk_movie_id, sk_movie_review_id)
     if review is None:
         raise NotFoundError("Avaliação não encontrada.")
 
-    review.curtidas = max(0, review.curtidas + change)
+    await repository.change_likes(session, sk_movie_review_id, change)
     await session.commit()
+    await session.refresh(review)
     return review
-
-
-async def _ensure_movie_exists(session: AsyncSession, sk_movie_id: str) -> None:
-    if not await repository.movie_exists(session, sk_movie_id):
-        raise NotFoundError("Filme não encontrado.")
 
 
 async def _refresh_summary(session: AsyncSession, sk_movie_id: str) -> None:
