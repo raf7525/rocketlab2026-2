@@ -9,6 +9,48 @@ e publica notas com resenha.
 - **Backend:** FastAPI, SQLAlchemy 2.0 e Alembic
 - **Banco de dados:** SQLite
 
+## Resumo
+
+**Histórias de usuário entregues** (as sete do desafio e mais uma):
+
+- [x] Cadastrar filmes com título, direção, ano, gênero e sinopse
+- [x] Navegar num catálogo paginado com todos os filmes
+- [x] Ver os detalhes do filme e a lista de avaliações
+- [x] Buscar filmes numa barra de pesquisa (e filtrar por gênero, status, direção e elenco)
+- [x] Atualizar e remover filmes
+- [x] Avaliar um filme com nota em estrelas e resenha
+- [x] Ver a média geral das avaliações de cada filme
+- [x] Extra: guardar filmes numa watchlist
+
+**Testes automatizados:**
+
+| Camada | Ferramenta | Quantidade |
+|---|---|---|
+| Backend (regras da API e do banco) | pytest | 193 testes |
+| Frontend (telas com API simulada) | Vitest, Testing Library e MSW | 136 testes |
+| Ponta a ponta (uma `.feature` por história) | Cypress com Cucumber | 12 cenários |
+
+**Como rodar** (com os CSVs em `backend/data/`):
+
+```bash
+# terminal 1: API em http://localhost:8000
+cd backend
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+cp .env.example .env
+.venv/bin/alembic upgrade head && .venv/bin/python -m scripts.load_data
+.venv/bin/uvicorn app.main:app --reload
+
+# terminal 2: front em http://localhost:5173
+cd frontend
+npm install && npm run dev      # ou npm run dev:mock, sem backend nem CSVs
+
+# testes, a partir da raiz do projeto
+(cd backend && .venv/bin/pytest)
+(cd frontend && npm run test:run && npm run e2e)
+```
+
+Os detalhes estão em [Como executar](#como-executar) e [Testes e qualidade](#testes-e-qualidade).
+
 ## Funcionalidades
 
 | Requisito | Onde está |
@@ -18,7 +60,7 @@ e publica notas com resenha.
 | Detalhes do filme e lista de avaliações | Clique num filme: sinopse, direção, gêneros, elenco, média e avaliações. |
 | Buscar filmes por uma barra de pesquisa | Barra no topo do catálogo, que busca por parte do título. |
 | Remover e atualizar filmes | Botão **Edição** na página do filme. O formulário de edição toma o lugar do de avaliação. A remoção pede confirmação. |
-| Adicionar uma avaliação (nota em estrelas e resenha) | Formulário **Avaliar este filme**, com nota de ½ a 5 estrelas. |
+| Adicionar uma avaliação (nota em estrelas e resenha) | Formulário **Avaliar este filme**, com nota de 0 a 5 estrelas, de meia em meia. |
 | Ver a média geral das avaliações | Abaixo do pôster, no catálogo e na página do filme. |
 
 Além do que foi pedido:

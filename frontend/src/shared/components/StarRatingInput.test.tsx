@@ -5,13 +5,27 @@ import { describe, expect, it, vi } from 'vitest'
 import { StarRatingInput } from './StarRatingInput'
 
 describe('StarRatingInput', () => {
-  it('oferece notas de meia em meia estrela, de 0,5 a 5', () => {
+  it('oferece nota 0 e notas de meia em meia estrela, até 5', () => {
     render(<StarRatingInput legend="Nota" value={null} onChange={() => {}} />)
 
     const options = within(screen.getByRole('group', { name: 'Nota' })).getAllByRole('radio')
-    expect(options).toHaveLength(10)
-    expect(options[0]).toHaveAccessibleName('0,5 estrela')
-    expect(options[9]).toHaveAccessibleName('5 estrelas')
+    expect(options).toHaveLength(11)
+    expect(options[0]).toHaveAccessibleName('0 estrelas')
+    expect(options[1]).toHaveAccessibleName('0,5 estrela')
+    expect(options[10]).toHaveAccessibleName('5 estrelas')
+  })
+
+  it('escolher 0 deixa as estrelas vazias e mostra 0/10', async () => {
+    const onChange = vi.fn()
+    const user = userEvent.setup()
+    const { rerender } = render(<StarRatingInput legend="Nota" value={null} onChange={onChange} />)
+
+    await user.click(screen.getByRole('radio', { name: '0 estrelas' }))
+    expect(onChange).toHaveBeenCalledWith(0)
+
+    rerender(<StarRatingInput legend="Nota" value={0} onChange={onChange} />)
+    expect(screen.getByRole('radio', { name: '0 estrelas' })).toBeChecked()
+    expect(screen.getByText('0/10')).toBeInTheDocument()
   })
 
   it('clicar numa meia estrela escolhe a nota de 0 a 10', async () => {

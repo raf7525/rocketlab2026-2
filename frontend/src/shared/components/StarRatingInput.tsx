@@ -6,7 +6,7 @@ import styles from './StarRatingInput.module.css'
 
 type Props = {
   legend: string
-  /** Nota de 1 a 10, ou `null` enquanto nada foi escolhido. */
+  /** Nota de 0 a 10, ou `null` enquanto nada foi escolhido. */
   value: number | null
   onChange: (nota: number) => void
   /** Id da mensagem de erro, quando houver. */
@@ -16,8 +16,9 @@ type Props = {
 const SCORES = Array.from({ length: MAX_SCORE }, (_, i) => i + 1)
 
 /**
- * Cinco estrelas divididas ao meio: cada metade é um radio, então o valor vai de 1 (½ estrela)
- * a 10 (5 estrelas), a escala do backend. As setas do teclado também trocam a nota.
+ * Um "0" seguido de cinco estrelas divididas ao meio: cada metade é um radio, então o valor vai
+ * de 0 (nenhuma estrela) a 10 (5 estrelas), a escala do backend. As setas do teclado também
+ * trocam a nota.
  */
 export function StarRatingInput({ legend, value, onChange, describedBy }: Props) {
   const name = useId()
@@ -30,6 +31,21 @@ export function StarRatingInput({ legend, value, onChange, describedBy }: Props)
       <legend className={styles.legend}>{legend}</legend>
       <div className={styles.row}>
         <div className={styles.stars} onMouseLeave={() => setHovered(null)}>
+          <label
+            className={cx(styles.zero, shown === 0 && styles.zeroActive)}
+            onMouseEnter={() => setHovered(0)}
+          >
+            <input
+              type="radio"
+              name={name}
+              value={0}
+              checked={value === 0}
+              onChange={() => onChange(0)}
+              className="visually-hidden"
+            />
+            <span aria-hidden="true">0</span>
+            <span className="visually-hidden">{starsLabel(0)}</span>
+          </label>
           {SCORES.map((score) => (
             <label
               key={score}

@@ -10,6 +10,12 @@ describe('StarRating', () => {
     expect(screen.getByRole('img', { name: '3,5 de 5 estrelas' })).toHaveTextContent('★★★½')
   })
 
+  it('nota 0 aparece como cinco estrelas vazias', () => {
+    render(<StarRating stars={0} />)
+
+    expect(screen.getByRole('img', { name: '0 de 5 estrelas' })).toHaveTextContent('★★★★★')
+  })
+
   it('aceita um rótulo próprio para leitores de tela', () => {
     render(<StarRating stars={3.5} label="Nota média 3,6 de 5" />)
 

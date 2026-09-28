@@ -9,7 +9,7 @@ type Props = {
   size?: 'sm' | 'md' | 'lg'
 }
 
-/** Estrelas cheias seguidas de "½", como no Letterboxd. */
+/** Estrelas cheias seguidas de "½", como no Letterboxd. Nota 0 vira cinco estrelas vazias. */
 export function StarRating({ stars, label, size = 'md' }: Props) {
   const full = Math.floor(stars)
   const half = stars - full >= 0.5
@@ -18,9 +18,9 @@ export function StarRating({ stars, label, size = 'md' }: Props) {
     <span
       role="img"
       aria-label={label ?? `${formatStars(stars)} de ${MAX_STARS} estrelas`}
-      className={cx(styles.stars, styles[size])}
+      className={cx(styles.stars, styles[size], stars === 0 && styles.empty)}
     >
-      {'★'.repeat(full)}
+      {stars === 0 ? '★'.repeat(MAX_STARS) : '★'.repeat(full)}
       {half && '½'}
     </span>
   )

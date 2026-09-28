@@ -15,9 +15,9 @@ function setup() {
   return renderWithProviders(<ReviewForm movieId={MOVIE_ID} />)
 }
 
-async function fillAndSubmit(user: ReturnType<typeof setup>['user']) {
+async function fillAndSubmit(user: ReturnType<typeof setup>['user'], nota = '4 estrelas') {
   await user.type(screen.getByRole('textbox', { name: 'Seu nome' }), 'Rafael')
-  await user.click(screen.getByRole('radio', { name: '4 estrelas' }))
+  await user.click(screen.getByRole('radio', { name: nota }))
   await user.type(screen.getByRole('textbox', { name: 'Resenha' }), 'Muito bom!')
   await user.click(screen.getByRole('button', { name: 'Publicar avaliação' }))
 }
@@ -44,6 +44,15 @@ describe('ReviewForm', () => {
         comentario: 'Muito bom!',
       }),
     ])
+  })
+
+  it('aceita nota 0 (nenhuma estrela)', async () => {
+    const { user } = setup()
+
+    await fillAndSubmit(user, '0 estrelas')
+
+    await screen.findByText('Avaliação publicada!')
+    expect(db.reviews).toEqual([expect.objectContaining({ nota: 0 })])
   })
 
   it('limpa o formulário depois de publicar', async () => {

@@ -64,7 +64,6 @@ class MovieCreate(BaseModel):
 
 
 class MovieUpdate(MovieCreate):
-    
     elenco: list[Name] | None = None  # type: ignore[assignment]
 
 

@@ -8,6 +8,10 @@
   white-space: nowrap;
 }
 
+.empty {
+  color: var(--star-empty);
+}
+
 .sm {
   font-size: 13px;
 }
