@@ -274,39 +274,6 @@ Cada domínio do backend separa as responsabilidades em camadas:
 Os modelos ORM ficam todos em `movies/models.py`. O banco é um esquema estrela em volta de
 `dim_movies`, e todas as tabelas, inclusive as de avaliações e da watchlist, apontam para o filme.
 
-## Banco de dados
-
-O SQLite guarda tudo num único arquivo, `backend/rocketlab.db`. Cada alteração feita pela
-aplicação (cadastrar, editar, remover, avaliar, curtir) é gravada nesse arquivo e continua lá
-depois que a aplicação é fechada. O arquivo não vai para o git.
-
-- **Recomeçar do zero:** `.venv/bin/python -m scripts.load_data --reset` apaga todos os dados,
-  inclusive os criados pela aplicação, e carrega os CSVs de novo.
-- **Guardar uma cópia:** com a API parada, copie o arquivo:
-  `cp rocketlab.db rocketlab.backup.db`.
-- **Usar outro banco:** ajuste `DATABASE_URL` no `.env`.
-- **Imagens enviadas:** os pôsteres enviados pelo formulário não ficam no banco, e sim em
-  `backend/media/posters/`, que também não vai para o git. O banco guarda só o endereço de cada
-  imagem. Trocar a imagem de um filme, ou remover o filme, apaga o arquivo antigo. A pasta pode
-  ser mudada com `MEDIA_DIR` no `.env`.
-
-O modelo é um esquema estrela:
-
-- **Dimensões:** filmes, gêneros, pessoas (ator, diretor e roteirista), produtoras e resumo
-  das avaliações.
-- **Fato:** desempenho financeiro e popularidade de cada filme.
-- **Associações N:N:** ligam filmes a gêneros, produtoras e pessoas.
-- **`movie_reviews`:** as avaliações individuais.
-- **`watchlist`:** os filmes guardados para assistir depois.
-
-As tabelas são criadas só pelo Alembic. Para mudar os modelos:
-
-```bash
-cd backend
-.venv/bin/alembic revision --autogenerate -m "descreva a alteração"
-.venv/bin/alembic upgrade head
-```
-
 ## Decisões de projeto
 
 - **Escala das notas:** vai de 0 a 10, e cada ponto vale meia estrela (1 = ½ estrela,
